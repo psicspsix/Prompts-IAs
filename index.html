@@ -5,50 +5,209 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prompts para IAs</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #1a1a1a; color: #e0e0e0; }
-        #loginScreen, #appScreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            background: #1a1a1a; 
+            color: #e0e0e0; 
+            overflow-x: hidden; 
+        }
+        #loginScreen, #appScreen { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            box-sizing: border-box; 
+        }
         #loginScreen { 
-            background: url('https://images.unsplash.com/photo-1451187580459-43490279cdee?q=80&w=1472&auto=format&fit=crop') no-repeat center center fixed; 
+            background: url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1470&auto=format&fit=crop') no-repeat center center fixed; 
             background-size: cover; 
             display: flex; 
             justify-content: center; 
             align-items: center; 
             flex-direction: column;
         }
-        #appScreen { display: none; padding: 20px; }
-        .login-container, .register-container { background: rgba(0, 0, 0, 0.8); padding: 20px; border-radius: 10px; text-align: center; }
+        #appScreen { 
+            display: none; 
+            padding: 20px; 
+            overflow-y: auto; 
+            overflow-x: hidden; 
+        }
+        .login-container, .register-container { 
+            background: rgba(0, 0, 0, 0.8); 
+            padding: 20px; 
+            border-radius: 10px; 
+            text-align: center; 
+        }
         .login-container input, .register-container input { 
-            width: 100%; max-width: 300px; font-size: 18px; padding: 10px; margin: 10px 0; background: #333; color: #e0e0e0; border: 1px solid #555; border-radius: 5px; }
+            width: 100%; 
+            max-width: 300px; 
+            font-size: 18px; 
+            padding: 10px; 
+            margin: 10px 0; 
+            background: #333; 
+            color: #e0e0e0; 
+            border: 1px solid #555; 
+            border-radius: 5px; 
+        }
         .login-container button, .register-container button { 
-            font-size: 18px; padding: 10px 20px; margin: 5px; background: #333; color: #e0e0e0; border: 1px solid #555; border-radius: 5px; cursor: pointer; }
-        .login-container button:hover, .register-container button:hover { background: #555; }
-        #registerContainer { display: none; margin-top: 20px; }
-        #message { color: #ff5555; margin-top: 10px; }
-        .header { display: flex; justify-content: space-between; align-items: center; }
-        h1 { margin: 0; color: #ffffff; }
-        .menu { display: flex; gap: 10px; align-items: center; }
-        button { font-size: 18px; padding: 10px; margin: 5px; background: #333; color: #e0e0e0; border: 1px solid #555; cursor: pointer; }
-        button:hover { background: #555; }
-        button.active { background: #555; font-weight: bold; }
-        .small-btn { font-size: 14px; padding: 5px; width: 30px; height: 30px; line-height: 20px; text-align: center; }
-        ul { list-style-type: none; padding: 0; }
-        li { font-size: 18px; margin: 10px 0; background: #2a2a2a; padding: 10px; border-radius: 5px; }
-        .prompt-row { display: flex; align-items: center; gap: 10px; }
-        textarea { width: 100%; background: #444; color: #e0e0e0; border: 1px solid #555; padding: 5px; box-sizing: border-box; }
-        #error, #success { text-align: center; }
-        #error { color: #ff5555; }
-        #success { color: #55ff55; }
-        .input-row { display: flex; flex-direction: column; gap: 10px; }
-        #promptText, #editPromptText { height: 150px; }
-        #promptFunction, #editPromptFunction { height: 100px; }
-        #promptLocation, #editPromptLocation { height: 50px; }
-        #categorySelect, #editCategorySelect { padding: 10px; background: #333; color: #e0e0e0; border: 1px solid #555; }
-        #txtOutput, #txtOutputAdv { display: none; margin: 10px 0; padding: 10px; background: #333; border-radius: 5px; width: 100%; min-height: 100px; resize: vertical; }
-        .search-container { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start; }
-        .combo-box { display: flex; flex-direction: column; }
-        .combo-box select { height: 100px; background: #333; color: #e0e0e0; border: 1px solid #555; }
+            font-size: 18px; 
+            padding: 10px 20px; 
+            margin: 5px; 
+            background: #333; 
+            color: #e0e0e0; 
+            border: 1px solid #555; 
+            border-radius: 5px; 
+            cursor: pointer; 
+        }
+        .login-container button:hover, .register-container button:hover { 
+            background: #555; 
+        }
+        #registerContainer { 
+            display: none; 
+            margin-top: 20px; 
+        }
+        #message { 
+            color: #ff5555; 
+            margin-top: 10px; 
+        }
+        .header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            flex-wrap: wrap; 
+            max-width: 100%; 
+        }
+        h1 { 
+            margin: 0; 
+            color: #ffffff; 
+        }
+        .menu { 
+            display: flex; 
+            gap: 10px; 
+            align-items: center; 
+            flex-wrap: wrap; 
+        }
+        button { 
+            font-size: 18px; 
+            padding: 10px; 
+            margin: 5px; 
+            background: #333; 
+            color: #e0e0e0; 
+            border: 1px solid #555; 
+            cursor: pointer; 
+        }
+        button:hover { 
+            background: #555; 
+        }
+        button.active { 
+            background: #555; 
+            font-weight: bold; 
+        }
+        .small-btn { 
+            font-size: 14px; 
+            padding: 5px; 
+            width: 30px; 
+            height: 30px; 
+            line-height: 20px; 
+            text-align: center; 
+        }
+        ul { 
+            list-style-type: none; 
+            padding: 0; 
+        }
+        li { 
+            font-size: 18px; 
+            margin: 10px 0; 
+            background: #2a2a2a; 
+            padding: 10px; 
+            border-radius: 5px; 
+        }
+        .prompt-row { 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+        }
+        textarea { 
+            width: 100%; 
+            background: #444; 
+            color: #e0e0e0; 
+            border: 1px solid #555; 
+            padding: 5px; 
+            box-sizing: border-box; 
+        }
+        #error, #success { 
+            text-align: center; 
+        }
+        #error { 
+            color: #ff5555; 
+        }
+        #success { 
+            color: #55ff55; 
+        }
+        .input-row { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 10px; 
+            align-items: center; /* Centraliza os elementos */
+        }
+        #promptText, #editPromptText { 
+            height: 150px; 
+        }
+        #promptFunction, #editPromptFunction { 
+            height: 100px; 
+        }
+        #promptLocation, #editPromptLocation { 
+            height: 50px; 
+        }
+        #categorySelect, #editCategorySelect { 
+            padding: 10px; 
+            background: #333; 
+            color: #e0e0e0; 
+            border: 1px solid #555; 
+            height: 50px; /* Reduzido para metade do tamanho original */
+            width: 300px; /* Largura fixa para consistência */
+        }
+        #txtOutput, #txtOutputAdv { 
+            display: none; 
+            margin: 10px 0; 
+            padding: 10px; 
+            background: #333; 
+            border-radius: 5px; 
+            width: 100%; 
+            min-height: 100px; 
+            resize: vertical; 
+        }
+        .search-container { 
+            display: flex; 
+            gap: 10px; 
+            flex-wrap: wrap; 
+            align-items: flex-start; 
+            width: 100%; 
+            box-sizing: border-box; 
+        }
+        .combo-box { 
+            display: flex; 
+            flex-direction: column; 
+        }
+        .combo-box select { 
+            height: 100px; 
+            background: #333; 
+            color: #e0e0e0; 
+            border: 1px solid #555; 
+        }
         #searchInput, #advSearchInput { 
-            width: 100%; font-size: 18px; padding: 10px; background: #000; color: #fff; border: 1px solid #555; border-radius: 5px; box-sizing: border-box; }
+            width: 100%; 
+            font-size: 18px; 
+            padding: 10px; 
+            background: #000; 
+            color: #fff; 
+            border: 1px solid #555; 
+            border-radius: 5px; 
+            box-sizing: border-box; 
+        }
     </style>
 </head>
 <body>
@@ -157,7 +316,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, onValue, push, update, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, onValue, push, update, set, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = {
@@ -464,6 +623,7 @@
                             <span>${prompt.text} | Função: ${prompt.function} | Local: ${prompt.location} | Autor: ${prompt.author} | Categorias: ${prompt.categories.join(', ')}</span>
                             <button class="copy-btn" data-text="${prompt.text}">Copiar</button>
                             <button class="edit-btn" data-key="${key}">Editar</button>
+                            ${currentUserEmail === "psics.psix.141@gmail.com" ? `<button class="delete-btn" data-key="${key}">Excluir</button>` : ''}
                         </div>
                     `;
                     resultsList.appendChild(li);
@@ -475,6 +635,12 @@
                         const key = e.target.getAttribute('data-key');
                         editPrompt(key);
                     });
+                    if (currentUserEmail === "psics.psix.141@gmail.com") {
+                        li.querySelector('.delete-btn').addEventListener('click', (e) => {
+                            const key = e.target.getAttribute('data-key');
+                            deletePrompt(key, isAdvanced);
+                        });
+                    }
                 });
 
                 if (filteredPrompts.length === 0) {
@@ -501,6 +667,18 @@
                 loadCategories(document.getElementById('editCategorySelect'), prompt.categories);
                 editingPromptKey = key;
             }, { onlyOnce: true });
+        }
+
+        function deletePrompt(key, isAdvanced) {
+            if (confirm("Tem certeza que deseja excluir este prompt?")) {
+                const promptRef = ref(db, `prompts/${key}`);
+                remove(promptRef)
+                    .then(() => {
+                        document.getElementById('success').textContent = "Prompt excluído com sucesso!";
+                        performSearch(isAdvanced); // Atualiza a lista após exclusão
+                    })
+                    .catch(error => log(`Erro ao excluir prompt: ${error.message}`));
+            }
         }
 
         document.getElementById('saveEditPromptBtn').addEventListener('click', () => {
