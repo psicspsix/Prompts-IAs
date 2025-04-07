@@ -79,7 +79,7 @@
             align-items: center; 
             flex-wrap: wrap; 
             max-width: 100%; 
-            margin-bottom: 30px; /* 3 linhas de espaço */
+            margin-bottom: 60px; /* Aumentado para 6 linhas de espaço (aproximadamente) */
         }
         h1 { 
             margin: 0; 
@@ -138,6 +138,11 @@
             border: 1px solid #555; 
             padding: 5px; 
             box-sizing: border-box; 
+            font-size: 20px; /* Texto maior */
+        }
+        textarea::placeholder { 
+            font-size: 20px; /* Placeholder maior */
+            color: #888; 
         }
         #error, #success { 
             text-align: center; 
@@ -152,7 +157,7 @@
             display: flex; 
             flex-direction: column; 
             gap: 10px; 
-            align-items: center; 
+            align-items: flex-start; /* Alinhamento à esquerda para Cadastro de Categoria */
         }
         #promptText, #editPromptText { 
             height: 150px; 
@@ -164,28 +169,38 @@
             height: 50px; 
         }
         #promptAuthor, #editPromptAuthor { 
-            width: 33.33%; /* 1/3 da página */
-            background: #000; /* Tema noir */
+            width: 33.33%; 
+            background: #000; 
             color: #fff; 
             padding: 10px; 
             border: 1px solid #555; 
             border-radius: 5px; 
+            font-size: 20px; /* Texto maior */
+        }
+        #promptAuthor::placeholder, #editPromptAuthor::placeholder { 
+            font-size: 20px; /* Placeholder maior */
+            color: #888; 
         }
         #categorySelect, #editCategorySelect { 
             padding: 10px; 
             background: #333; 
             color: #e0e0e0; 
             border: 1px solid #555; 
-            height: 50px; 
-            width: 33.33%; /* 1/3 da página */
+            height: 100px; /* Aumentado verticalmente */
+            width: 33.33%; 
         }
         #categoryName { 
-            width: 33.33%; /* 1/3 da página */
-            background: #000; /* Tema noir */
+            width: 33.33%; 
+            background: #000; 
             color: #fff; 
             padding: 10px; 
             border: 1px solid #555; 
             border-radius: 5px; 
+            font-size: 20px; /* Texto maior */
+        }
+        #categoryName::placeholder { 
+            font-size: 20px; /* Placeholder maior */
+            color: #888; 
         }
         #txtOutput, #txtOutputAdv { 
             display: none; 
@@ -201,10 +216,10 @@
             display: flex; 
             gap: 10px; 
             flex-wrap: wrap; 
-            align-items: center; /* Centraliza os elementos */
+            align-items: center; 
             width: 100%; 
             box-sizing: border-box; 
-            justify-content: center; /* Centraliza horizontalmente */
+            justify-content: center; 
         }
         .combo-box { 
             display: flex; 
@@ -212,11 +227,11 @@
             align-items: center; 
         }
         .combo-box select { 
-            height: 200px; /* Aproximadamente 10 registros visíveis */
+            height: 200px; 
             background: #333; 
             color: #e0e0e0; 
             border: 1px solid #555; 
-            width: 33.33%; /* 1/3 da página */
+            width: 333.3%; /* 10 vezes maior que 33.33% */
         }
         #searchInput, #advSearchInput { 
             width: 100%; 
