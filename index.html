@@ -39,20 +39,22 @@
         #error { color: #ff5555; }
         #success { color: #55ff55; }
         .input-row { display: flex; flex-direction: column; gap: 10px; }
-        #promptText { height: 150px; }
-        #promptFunction { height: 100px; }
-        #promptLocation { height: 50px; }
-        #categorySelect { padding: 10px; background: #333; color: #e0e0e0; border: 1px solid #555; }
-        #txtOutput { display: none; margin: 10px 0; padding: 10px; background: #333; border-radius: 5px; width: 100%; min-height: 100px; resize: vertical; }
-        .search-container { display: flex; gap: 10px; flex-wrap: wrap; }
+        #promptText, #editPromptText { height: 150px; }
+        #promptFunction, #editPromptFunction { height: 100px; }
+        #promptLocation, #editPromptLocation { height: 50px; }
+        #categorySelect, #editCategorySelect { padding: 10px; background: #333; color: #e0e0e0; border: 1px solid #555; }
+        #txtOutput, #txtOutputAdv { display: none; margin: 10px 0; padding: 10px; background: #333; border-radius: 5px; width: 100%; min-height: 100px; resize: vertical; }
+        .search-container { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start; }
         .combo-box { display: flex; flex-direction: column; }
         .combo-box select { height: 100px; background: #333; color: #e0e0e0; border: 1px solid #555; }
+        #searchInput, #advSearchInput { 
+            width: 100%; font-size: 18px; padding: 10px; background: #000; color: #fff; border: 1px solid #555; border-radius: 5px; box-sizing: border-box; }
     </style>
 </head>
 <body>
     <div id="loginScreen">
         <div class="login-container">
-            <h2>Gerenciador de Prompts de IAs</h2>
+            <h2>Prompts para IAs</h2>
             <input type="text" id="userInput" placeholder="Usuário (e-mail)">
             <input type="password" id="passwordInput" placeholder="Senha">
             <button id="loginBtn">Entrar</button>
@@ -68,10 +70,10 @@
     </div>
     <div id="appScreen">
         <div class="header">
-            <h1>Gerenciador de Prompts de IAs</h1>
+            <h1>Prompts para IAs</h1>
             <div class="menu">
-                <button id="storePromptBtn">Armazenamento de Prompt</button>
-                <button id="categoryBtn">Cadastrar Categoria</button>
+                <button id="storePromptBtn">Cadastro de Prompt</button>
+                <button id="categoryBtn">Cadastro de Categoria</button>
                 <button id="searchBtn">Pesquisa</button>
                 <button id="advancedSearchBtn" style="display: none;">Pesquisa Avançada</button>
             </div>
@@ -92,6 +94,17 @@
                     <button id="savePromptBtn">Salvar Prompt</button>
                 </div>
                 <button id="backBtnStore">Voltar</button>
+            </div>
+            <div id="editPromptScreen" style="display: none;">
+                <div class="input-row">
+                    <textarea id="editPromptText" placeholder="Digite o texto do prompt"></textarea>
+                    <textarea id="editPromptFunction" placeholder="Descreva a função do prompt"></textarea>
+                    <textarea id="editPromptLocation" placeholder="Local em que foi utilizado (IA testada)"></textarea>
+                    <input type="text" id="editPromptAuthor" placeholder="Nome do autor">
+                    <select id="editCategorySelect" multiple></select>
+                    <button id="saveEditPromptBtn">Salvar Alterações</button>
+                </div>
+                <button id="backBtnEdit">Voltar</button>
             </div>
             <div id="categoryScreen" style="display: none;">
                 <div class="input-row">
@@ -164,6 +177,7 @@
         const categoriesRef = ref(db, 'categories');
         const usersRef = ref(db, 'users');
         let currentUserEmail = null;
+        let editingPromptKey = null;
 
         function log(message) {
             console.log(`[LOG ${new Date().toLocaleTimeString()}]: ${message}`);
@@ -288,7 +302,7 @@
             document.getElementById('success').textContent = '';
         }
 
-        function loadCategories(selectElement) {
+        function loadCategories(selectElement, selectedCategories = []) {
             onValue(categoriesRef, (snapshot) => {
                 const categories = snapshot.val();
                 selectElement.innerHTML = '';
@@ -297,6 +311,9 @@
                         const option = document.createElement('option');
                         option.value = key;
                         option.textContent = category.name;
+                        if (selectedCategories.includes(category.name)) {
+                            option.selected = true;
+                        }
                         selectElement.appendChild(option);
                     });
                 }
@@ -446,12 +463,17 @@
                         <div class="prompt-row">
                             <span>${prompt.text} | Função: ${prompt.function} | Local: ${prompt.location} | Autor: ${prompt.author} | Categorias: ${prompt.categories.join(', ')}</span>
                             <button class="copy-btn" data-text="${prompt.text}">Copiar</button>
+                            <button class="edit-btn" data-key="${key}">Editar</button>
                         </div>
                     `;
                     resultsList.appendChild(li);
                     li.querySelector('.copy-btn').addEventListener('click', (e) => {
                         navigator.clipboard.writeText(e.target.getAttribute('data-text'));
                         document.getElementById('success').textContent = "Prompt copiado para a área de transferência!";
+                    });
+                    li.querySelector('.edit-btn').addEventListener('click', (e) => {
+                        const key = e.target.getAttribute('data-key');
+                        editPrompt(key);
                     });
                 });
 
@@ -462,6 +484,56 @@
                 }
             }, { onlyOnce: true });
         }
+
+        function editPrompt(key) {
+            showScreen('editPromptScreen');
+            const promptRef = ref(db, `prompts/${key}`);
+            onValue(promptRef, (snapshot) => {
+                const prompt = snapshot.val();
+                if (!prompt) {
+                    document.getElementById('error').textContent = "Prompt não encontrado!";
+                    return;
+                }
+                document.getElementById('editPromptText').value = prompt.text;
+                document.getElementById('editPromptFunction').value = prompt.function;
+                document.getElementById('editPromptLocation').value = prompt.location;
+                document.getElementById('editPromptAuthor').value = prompt.author;
+                loadCategories(document.getElementById('editCategorySelect'), prompt.categories);
+                editingPromptKey = key;
+            }, { onlyOnce: true });
+        }
+
+        document.getElementById('saveEditPromptBtn').addEventListener('click', () => {
+            const text = document.getElementById('editPromptText').value.trim();
+            const func = document.getElementById('editPromptFunction').value.trim();
+            const location = document.getElementById('editPromptLocation').value.trim();
+            const author = document.getElementById('editPromptAuthor').value.trim();
+            const categorySelect = document.getElementById('editCategorySelect');
+            const categories = Array.from(categorySelect.selectedOptions).map(option => option.textContent);
+
+            if (!text || !func || !author || categories.length === 0) {
+                document.getElementById('error').textContent = "Preencha todos os campos obrigatórios!";
+                return;
+            }
+
+            const updatedPrompt = {
+                text,
+                function: func,
+                location,
+                author,
+                categories,
+                userEmail: currentUserEmail,
+                timestamp: Date.now()
+            };
+
+            set(ref(db, `prompts/${editingPromptKey}`), updatedPrompt)
+                .then(() => {
+                    document.getElementById('success').textContent = "Prompt atualizado com sucesso!";
+                    editingPromptKey = null;
+                    showRecentPrompts();
+                })
+                .catch(error => log(`Erro ao atualizar prompt: ${error.message}`));
+        });
 
         document.getElementById('doSearchBtn').addEventListener('click', () => performSearch(false));
         document.getElementById('doAdvSearchBtn').addEventListener('click', () => performSearch(true));
@@ -483,6 +555,7 @@
 
         document.getElementById('backBtn').addEventListener('click', showRecentPrompts);
         document.getElementById('backBtnStore').addEventListener('click', showRecentPrompts);
+        document.getElementById('backBtnEdit').addEventListener('click', showRecentPrompts);
         document.getElementById('backBtnCategory').addEventListener('click', showRecentPrompts);
         document.getElementById('backBtnSearch').addEventListener('click', showRecentPrompts);
         document.getElementById('backBtnAdvSearch').addEventListener('click', showRecentPrompts);
