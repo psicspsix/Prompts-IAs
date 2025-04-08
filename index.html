@@ -236,7 +236,7 @@
             background: #000; 
             color: #fff; 
             border: 1px solid #555; 
-            width: 33.33%; /* Mesmo tamanho do Nome do Autor */
+            width: calc(33.33% - 10px); /* Aproximadamente o tamanho do Nome do Autor, ajustado pelo gap */
         }
         #searchInput, #advSearchInput { 
             width: 100%; 
@@ -271,8 +271,8 @@
         .search-btn-small { 
             padding: 5px 10px; 
             font-size: 16px; 
-            width: auto; /* Tamanho do texto "Pesquisar" */
-            align-self: flex-start; /* Alinhado à esquerda */
+            width: auto; 
+            align-self: flex-start; 
         }
     </style>
 </head>
@@ -693,13 +693,10 @@
         document.getElementById('categoryBtn').addEventListener('click', () => {
             showScreen('categoryScreen');
             loadCategoryList();
-            document.getElementById('saveCategoryBtn').textContent = "Cadastrar Categoria";
-            document.getElementById('saveCategoryBtn').onclick = saveCategoryDefault;
-        });
-
-        document.getElementById('saveCategoryBtn').addEventListener('click', saveCategoryDefault);
-        document.getElementById('categoryName').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') document.getElementById('saveCategoryBtn').click();
+            const saveBtn = document.getElementById('saveCategoryBtn');
+            saveBtn.textContent = "Cadastrar Categoria";
+            saveBtn.removeEventListener('click', editCategoryHandler); // Remove qualquer evento de edição anterior
+            saveBtn.addEventListener('click', saveCategoryDefault);
         });
 
         function saveCategoryDefault() {
@@ -718,6 +715,32 @@
                 })
                 .catch(error => log(`Erro ao cadastrar categoria: ${error.message}`));
         }
+
+        function editCategoryHandler() {
+            const name = document.getElementById('categoryName').value.trim();
+            const desc = document.getElementById('categoryDesc').value.trim();
+            const key = this.dataset.key; // Armazena a chave da categoria sendo editada
+            if (!name || !desc) {
+                document.getElementById('error').textContent = "Preencha todos os campos!";
+                return;
+            }
+            set(ref(db, `categories/${key}`), { name, description: desc })
+                .then(() => {
+                    document.getElementById('success').textContent = "Categoria alterada com sucesso!";
+                    document.getElementById('categoryName').value = '';
+                    document.getElementById('categoryDesc').value = '';
+                    const saveBtn = document.getElementById('saveCategoryBtn');
+                    saveBtn.textContent = "Cadastrar Categoria";
+                    saveBtn.removeEventListener('click', editCategoryHandler);
+                    saveBtn.addEventListener('click', saveCategoryDefault);
+                    loadCategoryList();
+                })
+                .catch(error => log(`Erro ao alterar categoria: ${error.message}`));
+        }
+
+        document.getElementById('categoryName').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') document.getElementById('saveCategoryBtn').click();
+        });
 
         function loadCategoryList() {
             const categoryList = document.getElementById('categoryList');
@@ -761,26 +784,12 @@
                 const category = snapshot.val();
                 document.getElementById('categoryName').value = category.name;
                 document.getElementById('categoryDesc').value = category.description;
-                document.getElementById('saveCategoryBtn').textContent = "Alterar Categoria";
-                document.getElementById('saveCategoryBtn').onclick = () => {
-                    const newName = document.getElementById('categoryName').value.trim();
-                    const newDesc = document.getElementById('categoryDesc').value.trim();
-                    if (!newName || !newDesc) {
-                        document.getElementById('error').textContent = "Preencha todos os campos!";
-                        return;
-                    }
-                    set(categoryRef, { name: newName, description: newDesc })
-                        .then(() => {
-                            document.getElementById('success').textContent = "Categoria alterada com sucesso!";
-                            document.getElementById('categoryName').value = '';
-                            document.getElementById('categoryDesc').value = '';
-                            document.getElementById('saveCategoryBtn').textContent = "Cadastrar Categoria";
-                            document.getElementById('saveCategoryBtn').onclick = saveCategoryDefault;
-                            loadCategoryList();
-                        })
-                        .catch(error => log(`Erro ao alterar categoria: ${error.message}`));
-                };
-                window.scrollTo({ top: 0, behavior: 'smooth' }); // Rolagem para o topo
+                const saveBtn = document.getElementById('saveCategoryBtn');
+                saveBtn.textContent = "Alterar Categoria";
+                saveBtn.removeEventListener('click', saveCategoryDefault); // Remove o evento padrão
+                saveBtn.dataset.key = key; // Armazena a chave no botão
+                saveBtn.addEventListener('click', editCategoryHandler);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             }, { onlyOnce: true });
         }
 
