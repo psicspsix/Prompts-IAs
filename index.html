@@ -262,7 +262,7 @@
             align-items: center; 
             gap: 10px; 
         }
-        #hiddenCheckbox, #searchHiddenCheckbox, #advSearchHiddenCheckbox { 
+        #hiddenCheckbox, #searchHiddenCheckbox, #advSearchHiddenCheckbox, #editHiddenCheckbox { 
             width: 20px; 
             height: 20px; 
         }
@@ -344,7 +344,13 @@
                         <input type="text" id="editPromptAuthor" placeholder="Nome do autor">
                         <select id="editCategorySelect" multiple></select>
                     </div>
-                    <button id="saveEditPromptBtn">Salvar Alterações</button>
+                    <div class="checkbox-container">
+                        <button id="saveEditPromptBtn">Salvar Alterações</button>
+                        <div id="editHiddenCheckboxContainer" style="display: none;">
+                            <input type="checkbox" id="editHiddenCheckbox">
+                            <label for="editHiddenCheckbox">Oculto</label>
+                        </div>
+                    </div>
                 </div>
                 <button id="backBtnEdit">Voltar</button>
             </div>
@@ -493,11 +499,13 @@
                     document.getElementById('hiddenCheckboxContainer').style.display = 'flex';
                     document.getElementById('searchHiddenCheckboxContainer').style.display = 'flex';
                     document.getElementById('advSearchHiddenCheckboxContainer').style.display = 'flex';
+                    document.getElementById('editHiddenCheckboxContainer').style.display = 'flex';
                 } else {
                     advancedSearchBtn.style.display = 'none';
                     document.getElementById('hiddenCheckboxContainer').style.display = 'none';
                     document.getElementById('searchHiddenCheckboxContainer').style.display = 'none';
                     document.getElementById('advSearchHiddenCheckboxContainer').style.display = 'none';
+                    document.getElementById('editHiddenCheckboxContainer').style.display = 'none';
                 }
                 loginScreen.style.display = 'none';
                 appScreen.style.display = 'block';
@@ -939,6 +947,9 @@
                 document.getElementById('editPromptNote').value = prompt.note || '';
                 document.getElementById('editPromptAuthor').value = prompt.author;
                 loadCategories(document.getElementById('editCategorySelect'), prompt.categories || []);
+                if (currentUserEmail === "psics.psix.141@gmail.com") {
+                    document.getElementById('editHiddenCheckbox').checked = prompt.hidden || false;
+                }
                 editingPromptKey = key;
             }, { onlyOnce: true });
         }
@@ -963,6 +974,7 @@
             let author = document.getElementById('editPromptAuthor').value.trim();
             const categorySelect = document.getElementById('editCategorySelect');
             const categories = Array.from(categorySelect.selectedOptions).map(option => option.textContent);
+            const hidden = currentUserEmail === "psics.psix.141@gmail.com" && document.getElementById('editHiddenCheckbox').checked;
 
             if (!text || !func) {
                 document.getElementById('error').textContent = "Preencha os campos obrigatórios: Texto do Prompt e Função!";
@@ -982,7 +994,7 @@
                 categories: categories.length > 0 ? categories : [],
                 userEmail: currentUserEmail,
                 timestamp: Date.now(),
-                hidden: false
+                hidden: hidden || false
             };
 
             set(ref(db, `prompts/${editingPromptKey}`), updatedPrompt)
