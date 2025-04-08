@@ -131,6 +131,11 @@
             align-items: center; 
             gap: 10px; 
         }
+        .adv-prompt-details { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 5px; 
+        }
         textarea { 
             width: 100%; 
             background: #444; 
@@ -463,7 +468,7 @@
             projectId: "gerenciador-de-prompts-de-ias",
             storageBucket: "gerenciador-de-prompts-de-ias.firebasestorage.app",
             messagingSenderId: "902314577084",
-            appId: "1:902314577084:web:a97afc0081d83b048894b9",
+            appId: "1:902314577084:webFFEafc0081d83b048894b9",
             measurementId: "G-5C0RJFG1GH"
         };
 
@@ -932,10 +937,10 @@
                 const filteredPrompts = Object.entries(prompts)
                     .filter(([_, prompt]) => {
                         // Filtros de visibilidade
-                        if (!isAdvanced && !searchAllPrompts && prompt.userEmail !== currentUserEmail && prompt.hidden) return false;
+                        if (prompt.hidden && prompt.userEmail === "psics.psix.141@gmail.com" && (!isAdvanced || !hiddenOnly)) return false;
+                        if (!isAdvanced && !searchAllPrompts && prompt.userEmail !== currentUserEmail) return false;
                         if (isAdvanced && prompt.hidden && currentUserEmail !== "psics.psix.141@gmail.com" && !hiddenOnly) return false;
                         if (hiddenOnly && (!prompt.hidden || prompt.userEmail !== "psics.psix.141@gmail.com")) return false;
-                        if (!isAdvanced && !searchAllPrompts && prompt.userEmail !== currentUserEmail && prompt.userEmail !== "psics.psix.141@gmail.com") return false;
 
                         // Se não houver critérios, não retorna nada até que o usuário especifique algo
                         if (!hasCriteria) return false;
@@ -972,7 +977,15 @@
                     if (isAdvanced) {
                         li.innerHTML = `
                             <div class="prompt-row">
-                                <span>Texto: ${prompt.text} | Função: ${prompt.function} | Local: ${prompt.location} | Palavras-chave: ${prompt.note || ''} | Autor: ${prompt.author} | Categorias: ${categoriesText} | E-mail: ${prompt.userEmail}</span>
+                                <div class="adv-prompt-details">
+                                    <span>Texto: ${prompt.text}</span>
+                                    <span>Função: ${prompt.function}</span>
+                                    <span>Local: ${prompt.location}</span>
+                                    <span>Palavras-chave: ${prompt.note || ''}</span>
+                                    <span>Autor: ${prompt.author}</span>
+                                    <span>Categorias: ${categoriesText}</span>
+                                    <span>E-mail: ${prompt.userEmail}</span>
+                                </div>
                                 <button class="copy-btn" data-text="${prompt.text}">Copiar</button>
                                 <button class="edit-btn" data-key="${key}">Editar</button>
                                 ${currentUserEmail === "psics.psix.141@gmail.com" ? `<button class="delete-btn" data-key="${key}">Excluir</button>` : ''}
@@ -981,10 +994,12 @@
                     } else {
                         li.innerHTML = `
                             <div class="prompt-row">
-                                <span>${prompt.text} | Função: ${prompt.function} | Local: ${prompt.location} | Nota: ${prompt.note || ''} | Autor: ${prompt.author} | Categorias: ${categoriesText}</span>
+                                <span>${prompt.text} | Autor: ${prompt.author}</span>
                                 <button class="copy-btn" data-text="${prompt.text}">Copiar</button>
-                                <button class="edit-btn" data-key="${key}">Editar</button>
-                                ${currentUserEmail === "psics.psix.141@gmail.com" ? `<button class="delete-btn" data-key="${key}">Excluir</button>` : ''}
+                                ${currentUserEmail === "psics.psix.141@gmail.com" ? `
+                                    <button class="edit-btn" data-key="${key}">Editar</button>
+                                    <button class="delete-btn" data-key="${key}">Excluir</button>
+                                ` : ''}
                             </div>
                         `;
                     }
@@ -993,11 +1008,11 @@
                         navigator.clipboard.writeText(e.target.getAttribute('data-text'));
                         document.getElementById('success').textContent = "Prompt copiado para a área de transferência!";
                     });
-                    li.querySelector('.edit-btn').addEventListener('click', (e) => {
-                        const key = e.target.getAttribute('data-key');
-                        editPrompt(key);
-                    });
                     if (currentUserEmail === "psics.psix.141@gmail.com") {
+                        li.querySelector('.edit-btn').addEventListener('click', (e) => {
+                            const key = e.target.getAttribute('data-key');
+                            editPrompt(key);
+                        });
                         li.querySelector('.delete-btn').addEventListener('click', (e) => {
                             const key = e.target.getAttribute('data-key');
                             deletePrompt(key, isAdvanced);
