@@ -233,10 +233,10 @@
         }
         .combo-box select { 
             height: 200px; 
-            background: #000; /* Tema noir */
+            background: #000; 
             color: #fff; 
             border: 1px solid #555; 
-            width: 33.33%; 
+            width: 33.33%; /* Mesmo tamanho do Nome do Autor */
         }
         #searchInput, #advSearchInput { 
             width: 100%; 
@@ -262,15 +262,17 @@
             gap: 10px; 
         }
         #hiddenCheckbox, #searchHiddenCheckbox, #advSearchHiddenCheckbox { 
-            width: 20px; /* Checkbox maior */
+            width: 20px; 
             height: 20px; 
         }
         .category-list { 
             margin-top: 50px; 
         }
         .search-btn-small { 
-            padding: 5px 10px; /* Tamanho do texto */
+            padding: 5px 10px; 
             font-size: 16px; 
+            width: auto; /* Tamanho do texto "Pesquisar" */
+            align-self: flex-start; /* Alinhado à esquerda */
         }
     </style>
 </head>
@@ -507,7 +509,12 @@
             }
         });
 
-        loginBtn.addEventListener('click', () => {
+        loginBtn.addEventListener('click', loginUser);
+        passwordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') loginUser();
+        });
+
+        function loginUser() {
             const email = userInput.value.trim();
             const password = passwordInput.value.trim();
             if (!email || !password) {
@@ -526,7 +533,7 @@
                     }
                     log(`Erro ao fazer login: ${error.message}`);
                 });
-        });
+        }
 
         registerBtn.addEventListener('click', () => {
             registerContainer.style.display = 'block';
@@ -588,7 +595,8 @@
                 const categories = snapshot.val();
                 selectElement.innerHTML = '';
                 if (categories) {
-                    Object.entries(categories).forEach(([key, category]) => {
+                    const sortedCategories = Object.entries(categories).sort((a, b) => a[1].name.localeCompare(b[1].name));
+                    sortedCategories.forEach(([key, category]) => {
                         const option = document.createElement('option');
                         option.value = key;
                         option.textContent = category.name;
@@ -685,10 +693,14 @@
         document.getElementById('categoryBtn').addEventListener('click', () => {
             showScreen('categoryScreen');
             loadCategoryList();
-            document.getElementById('saveCategoryBtn').textContent = "Cadastrar Categoria"; // Reseta o texto
+            document.getElementById('saveCategoryBtn').textContent = "Cadastrar Categoria";
+            document.getElementById('saveCategoryBtn').onclick = saveCategoryDefault;
         });
 
         document.getElementById('saveCategoryBtn').addEventListener('click', saveCategoryDefault);
+        document.getElementById('categoryName').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') document.getElementById('saveCategoryBtn').click();
+        });
 
         function saveCategoryDefault() {
             const name = document.getElementById('categoryName').value.trim();
@@ -716,7 +728,8 @@
                     categoryList.innerHTML = '<li>Nenhuma categoria cadastrada.</li>';
                     return;
                 }
-                Object.entries(categories).forEach(([key, category]) => {
+                const sortedCategories = Object.entries(categories).sort((a, b) => a[1].name.localeCompare(b[1].name));
+                sortedCategories.forEach(([key, category]) => {
                     const li = document.createElement('li');
                     li.innerHTML = `
                         <div class="prompt-row">
@@ -767,6 +780,7 @@
                         })
                         .catch(error => log(`Erro ao alterar categoria: ${error.message}`));
                 };
+                window.scrollTo({ top: 0, behavior: 'smooth' }); // Rolagem para o topo
             }, { onlyOnce: true });
         }
 
@@ -955,6 +969,12 @@
         document.getElementById('doSearchBtnTop').addEventListener('click', () => performSearch(false));
         document.getElementById('doAdvSearchBtn').addEventListener('click', () => performSearch(true));
         document.getElementById('doAdvSearchBtnTop').addEventListener('click', () => performSearch(true));
+        document.getElementById('searchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') performSearch(false);
+        });
+        document.getElementById('advSearchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') performSearch(true);
+        });
 
         function exportSearchToTxt(isAdvanced = false) {
             const resultsList = document.getElementById(isAdvanced ? 'advSearchResults' : 'searchResults');
