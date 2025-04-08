@@ -79,7 +79,7 @@
             align-items: center; 
             flex-wrap: wrap; 
             max-width: 100%; 
-            margin-bottom: 60px; /* Aumentado para 6 linhas de espaço (aproximadamente) */
+            margin-bottom: 60px; 
         }
         h1 { 
             margin: 0; 
@@ -138,10 +138,10 @@
             border: 1px solid #555; 
             padding: 5px; 
             box-sizing: border-box; 
-            font-size: 20px; /* Texto maior */
+            font-size: 20px; 
         }
         textarea::placeholder { 
-            font-size: 20px; /* Placeholder maior */
+            font-size: 20px; 
             color: #888; 
         }
         #error, #success { 
@@ -157,7 +157,7 @@
             display: flex; 
             flex-direction: column; 
             gap: 10px; 
-            align-items: flex-start; /* Alinhamento à esquerda para Cadastro de Categoria */
+            align-items: flex-start; 
         }
         #promptText, #editPromptText { 
             height: 150px; 
@@ -165,8 +165,15 @@
         #promptFunction, #editPromptFunction { 
             height: 100px; 
         }
-        #promptLocation, #editPromptLocation { 
+        .location-note-container { 
+            display: flex; 
+            flex-direction: row; 
+            gap: 10px; 
+            width: 100%; 
+        }
+        #promptLocation, #editPromptLocation, #promptNote, #editPromptNote { 
             height: 50px; 
+            width: 50%; 
         }
         #promptAuthor, #editPromptAuthor { 
             width: 33.33%; 
@@ -175,10 +182,10 @@
             padding: 10px; 
             border: 1px solid #555; 
             border-radius: 5px; 
-            font-size: 20px; /* Texto maior */
+            font-size: 20px; 
         }
         #promptAuthor::placeholder, #editPromptAuthor::placeholder { 
-            font-size: 20px; /* Placeholder maior */
+            font-size: 20px; 
             color: #888; 
         }
         #categorySelect, #editCategorySelect { 
@@ -186,7 +193,7 @@
             background: #333; 
             color: #e0e0e0; 
             border: 1px solid #555; 
-            height: 100px; /* Aumentado verticalmente */
+            height: 100px; 
             width: 33.33%; 
         }
         #categoryName { 
@@ -196,10 +203,10 @@
             padding: 10px; 
             border: 1px solid #555; 
             border-radius: 5px; 
-            font-size: 20px; /* Texto maior */
+            font-size: 20px; 
         }
         #categoryName::placeholder { 
-            font-size: 20px; /* Placeholder maior */
+            font-size: 20px; 
             color: #888; 
         }
         #txtOutput, #txtOutputAdv { 
@@ -214,12 +221,10 @@
         }
         .search-container { 
             display: flex; 
+            flex-direction: column; 
             gap: 10px; 
-            flex-wrap: wrap; 
-            align-items: center; 
             width: 100%; 
             box-sizing: border-box; 
-            justify-content: center; 
         }
         .combo-box { 
             display: flex; 
@@ -231,7 +236,7 @@
             background: #333; 
             color: #e0e0e0; 
             border: 1px solid #555; 
-            width: 333.3%; /* 10 vezes maior que 33.33% */
+            width: 333.3%; 
         }
         #searchInput, #advSearchInput { 
             width: 100%; 
@@ -242,6 +247,7 @@
             border: 1px solid #555; 
             border-radius: 5px; 
             box-sizing: border-box; 
+            margin-bottom: 40px; /* 4 linhas de espaço */
         }
         .prompt-container { 
             display: flex; 
@@ -249,6 +255,14 @@
             gap: 10px; 
             width: 100%; 
             justify-content: center; 
+        }
+        .checkbox-container { 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+        }
+        .category-list { 
+            margin-top: 50px; /* 5 linhas de espaço */
         }
     </style>
 </head>
@@ -289,12 +303,21 @@
                 <div class="input-row">
                     <textarea id="promptText" placeholder="Digite o texto do prompt"></textarea>
                     <textarea id="promptFunction" placeholder="Descreva a função do prompt"></textarea>
-                    <textarea id="promptLocation" placeholder="Local em que foi utilizado (IA testada)"></textarea>
+                    <div class="location-note-container">
+                        <textarea id="promptLocation" placeholder="Local em que foi utilizado (IA testada)"></textarea>
+                        <textarea id="promptNote" placeholder="Digite as palavras-chaves"></textarea>
+                    </div>
                     <div class="prompt-container">
                         <input type="text" id="promptAuthor" placeholder="Nome do autor">
                         <select id="categorySelect" multiple></select>
                     </div>
-                    <button id="savePromptBtn">Salvar Prompt</button>
+                    <div class="checkbox-container">
+                        <button id="savePromptBtn">Salvar Prompt</button>
+                        <div id="hiddenCheckboxContainer" style="display: none;">
+                            <input type="checkbox" id="hiddenCheckbox">
+                            <label for="hiddenCheckbox">Oculto</label>
+                        </div>
+                    </div>
                 </div>
                 <button id="backBtnStore">Voltar</button>
             </div>
@@ -302,7 +325,10 @@
                 <div class="input-row">
                     <textarea id="editPromptText" placeholder="Digite o texto do prompt"></textarea>
                     <textarea id="editPromptFunction" placeholder="Descreva a função do prompt"></textarea>
-                    <textarea id="editPromptLocation" placeholder="Local em que foi utilizado (IA testada)"></textarea>
+                    <div class="location-note-container">
+                        <textarea id="editPromptLocation" placeholder="Local em que foi utilizado (IA testada)"></textarea>
+                        <textarea id="editPromptNote" placeholder="Digite as palavras-chaves"></textarea>
+                    </div>
                     <div class="prompt-container">
                         <input type="text" id="editPromptAuthor" placeholder="Nome do autor">
                         <select id="editCategorySelect" multiple></select>
@@ -318,13 +344,25 @@
                     <button id="saveCategoryBtn">Cadastrar Categoria</button>
                 </div>
                 <button id="backBtnCategory">Voltar</button>
+                <div class="category-list">
+                    <h3>Categorias já cadastradas</h3>
+                    <ul id="categoryList"></ul>
+                </div>
             </div>
             <div id="searchScreen" style="display: none;">
                 <div class="search-container">
                     <input type="text" id="searchInput" placeholder="Digite o texto para pesquisa">
-                    <div class="combo-box">
-                        <label>Incluir Categorias:</label>
-                        <select id="includeCategories" multiple></select>
+                    <div class="input-row">
+                        <textarea id="searchPromptText" placeholder="Digite o texto do prompt"></textarea>
+                        <textarea id="searchPromptFunction" placeholder="Descreva a função do prompt"></textarea>
+                        <div class="location-note-container">
+                            <textarea id="searchPromptLocation" placeholder="Local em que foi utilizado (IA testada)"></textarea>
+                            <textarea id="searchPromptNote" placeholder="Digite as palavras-chaves"></textarea>
+                        </div>
+                        <div class="prompt-container">
+                            <input type="text" id="searchPromptAuthor" placeholder="Nome do autor">
+                            <select id="includeCategories" multiple></select>
+                        </div>
                     </div>
                     <div class="combo-box">
                         <label>Excluir Categorias:</label>
@@ -340,9 +378,17 @@
             <div id="advancedSearchScreen" style="display: none;">
                 <div class="search-container">
                     <input type="text" id="advSearchInput" placeholder="Digite o texto para pesquisa avançada">
-                    <div class="combo-box">
-                        <label>Incluir Categorias:</label>
-                        <select id="advIncludeCategories" multiple></select>
+                    <div class="input-row">
+                        <textarea id="advSearchPromptText" placeholder="Digite o texto do prompt"></textarea>
+                        <textarea id="advSearchPromptFunction" placeholder="Descreva a função do prompt"></textarea>
+                        <div class="location-note-container">
+                            <textarea id="advSearchPromptLocation" placeholder="Local em que foi utilizado (IA testada)"></textarea>
+                            <textarea id="advSearchPromptNote" placeholder="Digite as palavras-chaves"></textarea>
+                        </div>
+                        <div class="prompt-container">
+                            <input type="text" id="advSearchPromptAuthor" placeholder="Nome do autor">
+                            <select id="advIncludeCategories" multiple></select>
+                        </div>
                     </div>
                     <div class="combo-box">
                         <label>Excluir Categorias:</label>
@@ -417,8 +463,10 @@
                 log(`Usuário autenticado: ${currentUserEmail}`);
                 if (currentUserEmail === "psics.psix.141@gmail.com") {
                     advancedSearchBtn.style.display = 'inline-block';
+                    document.getElementById('hiddenCheckboxContainer').style.display = 'flex';
                 } else {
                     advancedSearchBtn.style.display = 'none';
+                    document.getElementById('hiddenCheckboxContainer').style.display = 'none';
                 }
                 loginScreen.style.display = 'none';
                 appScreen.style.display = 'block';
@@ -536,7 +584,7 @@
                     return;
                 }
                 const userPrompts = Object.entries(prompts)
-                    .filter(([_, prompt]) => prompt.userEmail === currentUserEmail)
+                    .filter(([_, prompt]) => prompt.userEmail === currentUserEmail || !prompt.hidden)
                     .sort((a, b) => b[1].timestamp - a[1].timestamp)
                     .slice(0, 10);
                 userPrompts.forEach(([key, prompt]) => {
@@ -565,23 +613,31 @@
             const text = document.getElementById('promptText').value.trim();
             const func = document.getElementById('promptFunction').value.trim();
             const location = document.getElementById('promptLocation').value.trim();
-            const author = document.getElementById('promptAuthor').value.trim();
+            const note = document.getElementById('promptNote').value.trim();
+            let author = document.getElementById('promptAuthor').value.trim();
             const categorySelect = document.getElementById('categorySelect');
             const categories = Array.from(categorySelect.selectedOptions).map(option => option.textContent);
+            const hidden = currentUserEmail === "psics.psix.141@gmail.com" && document.getElementById('hiddenCheckbox').checked;
 
-            if (!text || !func || !author || categories.length === 0) {
-                document.getElementById('error').textContent = "Preencha todos os campos obrigatórios!";
+            if (!text || !func) {
+                document.getElementById('error').textContent = "Preencha os campos obrigatórios: Texto do Prompt e Função!";
                 return;
+            }
+
+            if (!author) {
+                author = currentUserEmail;
             }
 
             const newPrompt = {
                 text,
                 function: func,
                 location,
+                note,
                 author,
                 categories,
                 userEmail: currentUserEmail,
-                timestamp: Date.now()
+                timestamp: Date.now(),
+                hidden: hidden || false
             };
 
             push(promptsRef, newPrompt)
@@ -590,14 +646,17 @@
                     document.getElementById('promptText').value = '';
                     document.getElementById('promptFunction').value = '';
                     document.getElementById('promptLocation').value = '';
+                    document.getElementById('promptNote').value = '';
                     document.getElementById('promptAuthor').value = '';
                     categorySelect.selectedIndex = -1;
+                    if (hidden) document.getElementById('hiddenCheckbox').checked = false;
                 })
                 .catch(error => log(`Erro ao armazenar prompt: ${error.message}`));
         });
 
         document.getElementById('categoryBtn').addEventListener('click', () => {
             showScreen('categoryScreen');
+            loadCategoryList();
         });
 
         document.getElementById('saveCategoryBtn').addEventListener('click', () => {
@@ -612,9 +671,85 @@
                     document.getElementById('success').textContent = "Categoria cadastrada com sucesso!";
                     document.getElementById('categoryName').value = '';
                     document.getElementById('categoryDesc').value = '';
+                    loadCategoryList();
                 })
                 .catch(error => log(`Erro ao cadastrar categoria: ${error.message}`));
         });
+
+        function loadCategoryList() {
+            const categoryList = document.getElementById('categoryList');
+            onValue(categoriesRef, (snapshot) => {
+                const categories = snapshot.val();
+                categoryList.innerHTML = '';
+                if (!categories) {
+                    categoryList.innerHTML = '<li>Nenhuma categoria cadastrada.</li>';
+                    return;
+                }
+                Object.entries(categories).forEach(([key, category]) => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <div class="prompt-row">
+                            <span>${category.name} | ${category.description}</span>
+                            ${currentUserEmail === "psics.psix.141@gmail.com" ? `
+                                <button class="edit-category-btn" data-key="${key}">Alterar</button>
+                                <button class="delete-category-btn" data-key="${key}">Excluir</button>
+                            ` : ''}
+                        </div>
+                    `;
+                    categoryList.appendChild(li);
+                    if (currentUserEmail === "psics.psix.141@gmail.com") {
+                        li.querySelector('.edit-category-btn').addEventListener('click', (e) => {
+                            const key = e.target.getAttribute('data-key');
+                            editCategory(key);
+                        });
+                        li.querySelector('.delete-category-btn').addEventListener('click', (e) => {
+                            const key = e.target.getAttribute('data-key');
+                            deleteCategory(key);
+                        });
+                    }
+                });
+            }, { onlyOnce: true });
+        }
+
+        function editCategory(key) {
+            const categoryRef = ref(db, `categories/${key}`);
+            onValue(categoryRef, (snapshot) => {
+                const category = snapshot.val();
+                document.getElementById('categoryName').value = category.name;
+                document.getElementById('categoryDesc').value = category.description;
+                document.getElementById('saveCategoryBtn').onclick = () => {
+                    const newName = document.getElementById('categoryName').value.trim();
+                    const newDesc = document.getElementById('categoryDesc').value.trim();
+                    if (!newName || !newDesc) {
+                        document.getElementById('error').textContent = "Preencha todos os campos!";
+                        return;
+                    }
+                    set(categoryRef, { name: newName, description: newDesc })
+                        .then(() => {
+                            document.getElementById('success').textContent = "Categoria alterada com sucesso!";
+                            document.getElementById('categoryName').value = '';
+                            document.getElementById('categoryDesc').value = '';
+                            loadCategoryList();
+                            document.getElementById('saveCategoryBtn').onclick = saveCategoryDefault;
+                        })
+                        .catch(error => log(`Erro ao alterar categoria: ${error.message}`));
+                };
+            }, { onlyOnce: true });
+        }
+
+        function deleteCategory(key) {
+            if (confirm("Tem certeza que deseja excluir esta categoria?")) {
+                const categoryRef = ref(db, `categories/${key}`);
+                remove(categoryRef)
+                    .then(() => {
+                        document.getElementById('success').textContent = "Categoria excluída com sucesso!";
+                        loadCategoryList();
+                    })
+                    .catch(error => log(`Erro ao excluir categoria: ${error.message}`));
+            }
+        }
+
+        const saveCategoryDefault = document.getElementById('saveCategoryBtn').onclick;
 
         document.getElementById('searchBtn').addEventListener('click', () => {
             showScreen('searchScreen');
@@ -630,6 +765,11 @@
 
         function performSearch(isAdvanced = false) {
             const input = document.getElementById(isAdvanced ? 'advSearchInput' : 'searchInput').value.trim().toLowerCase();
+            const promptText = document.getElementById(isAdvanced ? 'advSearchPromptText' : 'searchPromptText').value.trim().toLowerCase();
+            const promptFunction = document.getElementById(isAdvanced ? 'advSearchPromptFunction' : 'searchPromptFunction').value.trim().toLowerCase();
+            const promptLocation = document.getElementById(isAdvanced ? 'advSearchPromptLocation' : 'searchPromptLocation').value.trim().toLowerCase();
+            const promptNote = document.getElementById(isAdvanced ? 'advSearchPromptNote' : 'searchPromptNote').value.trim().toLowerCase();
+            const promptAuthor = document.getElementById(isAdvanced ? 'advSearchPromptAuthor' : 'searchPromptAuthor').value.trim().toLowerCase();
             const includeSelect = document.getElementById(isAdvanced ? 'advIncludeCategories' : 'includeCategories');
             const excludeSelect = document.getElementById(isAdvanced ? 'advExcludeCategories' : 'excludeCategories');
             const includeCategories = Array.from(includeSelect.selectedOptions).map(opt => opt.textContent);
@@ -651,14 +791,25 @@
 
                 const filteredPrompts = Object.entries(prompts)
                     .filter(([_, prompt]) => {
-                        if (!isAdvanced && prompt.userEmail !== currentUserEmail) return false;
-                        const textMatch = !input || prompt.text.toLowerCase().includes(input) ||
+                        if (!isAdvanced && prompt.userEmail !== currentUserEmail && prompt.hidden) return false;
+                        if (isAdvanced && prompt.hidden && currentUserEmail !== "psics.psix.141@gmail.com") return false;
+
+                        const generalMatch = !input || prompt.text.toLowerCase().includes(input) ||
                             prompt.function.toLowerCase().includes(input) ||
                             prompt.location.toLowerCase().includes(input) ||
+                            (prompt.note && prompt.note.toLowerCase().includes(input)) ||
                             prompt.author.toLowerCase().includes(input);
+
+                        const specificMatch = (!promptText || prompt.text.toLowerCase().includes(promptText)) &&
+                            (!promptFunction || prompt.function.toLowerCase().includes(promptFunction)) &&
+                            (!promptLocation || prompt.location.toLowerCase().includes(promptLocation)) &&
+                            (!promptNote || (prompt.note && prompt.note.toLowerCase().includes(promptNote))) &&
+                            (!promptAuthor || prompt.author.toLowerCase().includes(promptAuthor));
+
                         const includeMatch = includeCategories.length === 0 || prompt.categories.some(cat => includeCategories.includes(cat));
                         const excludeMatch = excludeCategories.length === 0 || !prompt.categories.some(cat => excludeCategories.includes(cat));
-                        return textMatch && includeMatch && excludeMatch;
+
+                        return (generalMatch || specificMatch) && includeMatch && excludeMatch;
                     })
                     .sort((a, b) => b[1].timestamp - a[1].timestamp);
 
@@ -666,7 +817,7 @@
                     const li = document.createElement('li');
                     li.innerHTML = `
                         <div class="prompt-row">
-                            <span>${prompt.text} | Função: ${prompt.function} | Local: ${prompt.location} | Autor: ${prompt.author} | Categorias: ${prompt.categories.join(', ')}</span>
+                            <span>${prompt.text} | Função: ${prompt.function} | Local: ${prompt.location} | Nota: ${prompt.note || ''} | Autor: ${prompt.author} | Categorias: ${prompt.categories.join(', ')}</span>
                             <button class="copy-btn" data-text="${prompt.text}">Copiar</button>
                             <button class="edit-btn" data-key="${key}">Editar</button>
                             ${currentUserEmail === "psics.psix.141@gmail.com" ? `<button class="delete-btn" data-key="${key}">Excluir</button>` : ''}
@@ -709,6 +860,7 @@
                 document.getElementById('editPromptText').value = prompt.text;
                 document.getElementById('editPromptFunction').value = prompt.function;
                 document.getElementById('editPromptLocation').value = prompt.location;
+                document.getElementById('editPromptNote').value = prompt.note || '';
                 document.getElementById('editPromptAuthor').value = prompt.author;
                 loadCategories(document.getElementById('editCategorySelect'), prompt.categories);
                 editingPromptKey = key;
@@ -731,23 +883,30 @@
             const text = document.getElementById('editPromptText').value.trim();
             const func = document.getElementById('editPromptFunction').value.trim();
             const location = document.getElementById('editPromptLocation').value.trim();
-            const author = document.getElementById('editPromptAuthor').value.trim();
+            const note = document.getElementById('editPromptNote').value.trim();
+            let author = document.getElementById('editPromptAuthor').value.trim();
             const categorySelect = document.getElementById('editCategorySelect');
             const categories = Array.from(categorySelect.selectedOptions).map(option => option.textContent);
 
-            if (!text || !func || !author || categories.length === 0) {
-                document.getElementById('error').textContent = "Preencha todos os campos obrigatórios!";
+            if (!text || !func) {
+                document.getElementById('error').textContent = "Preencha os campos obrigatórios: Texto do Prompt e Função!";
                 return;
+            }
+
+            if (!author) {
+                author = currentUserEmail;
             }
 
             const updatedPrompt = {
                 text,
                 function: func,
                 location,
+                note,
                 author,
                 categories,
                 userEmail: currentUserEmail,
-                timestamp: Date.now()
+                timestamp: Date.now(),
+                hidden: false // Não há checkbox na edição, mantém o valor original ou false
             };
 
             set(ref(db, `prompts/${editingPromptKey}`), updatedPrompt)
