@@ -230,13 +230,14 @@
             display: flex; 
             flex-direction: column; 
             align-items: flex-start; 
+            width: 33%; /* Aproximadamente igual ao Nome do Autor */
         }
         .combo-box select { 
             height: 200px; 
             background: #000; 
             color: #fff; 
             border: 1px solid #555; 
-            width: 30%; 
+            width: 100%; /* Preenche o container do combo-box */
         }
         #searchInput, #advSearchInput { 
             width: 100%; 
@@ -254,7 +255,7 @@
             flex-direction: row; 
             gap: 10px; 
             width: 100%; 
-            justify-content: flex-start; 
+            justify-content: flex-start; /* Alinha à esquerda com espaçamento fixo */
         }
         .checkbox-container { 
             display: flex; 
@@ -743,6 +744,10 @@
             if (e.key === 'Enter') document.getElementById('saveCategoryBtn').click();
         });
 
+        document.getElementById('categoryDesc').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') document.getElementById('saveCategoryBtn').click();
+        });
+
         function loadCategoryList() {
             const categoryList = document.getElementById('categoryList');
             onValue(categoriesRef, (snapshot) => {
@@ -819,7 +824,7 @@
         });
 
         function performSearch(isAdvanced = false) {
-            const input = document.getElementById(isAdvanced ? 'advSearchInput/journal.pone.0262488' : 'searchInput').value.trim().toLowerCase();
+            const input = document.getElementById(isAdvanced ? 'advSearchInput' : 'searchInput').value.trim().toLowerCase();
             const promptText = document.getElementById(isAdvanced ? 'advSearchPromptText' : 'searchPromptText').value.trim().toLowerCase();
             const promptFunction = document.getElementById(isAdvanced ? 'advSearchPromptFunction' : 'searchPromptFunction').value.trim().toLowerCase();
             const promptLocation = document.getElementById(isAdvanced ? 'advSearchPromptLocation' : 'searchPromptLocation').value.trim().toLowerCase();
@@ -845,28 +850,41 @@
                     return;
                 }
 
+                const hasCriteria = input || promptText || promptFunction || promptLocation || promptNote || promptAuthor || includeCategories.length > 0 || excludeCategories.length > 0 || hiddenOnly;
+
                 const filteredPrompts = Object.entries(prompts)
                     .filter(([_, prompt]) => {
+                        // Filtros de visibilidade
                         if (!isAdvanced && prompt.userEmail !== currentUserEmail && prompt.hidden) return false;
                         if (isAdvanced && prompt.hidden && currentUserEmail !== "psics.psix.141@gmail.com" && !hiddenOnly) return false;
                         if (hiddenOnly && (!prompt.hidden || prompt.userEmail !== "psics.psix.141@gmail.com")) return false;
 
-                        const generalMatch = !input || prompt.text.toLowerCase().includes(input) ||
+                        // Se não houver critérios, não retorna nada até que o usuário especifique algo
+                        if (!hasCriteria) return false;
+
+                        // Filtros de pesquisa geral (input principal)
+                        const generalMatch = !input || (
+                            prompt.text.toLowerCase().includes(input) ||
                             prompt.function.toLowerCase().includes(input) ||
                             prompt.location.toLowerCase().includes(input) ||
                             (prompt.note && prompt.note.toLowerCase().includes(input)) ||
-                            prompt.author.toLowerCase().includes(input);
+                            prompt.author.toLowerCase().includes(input)
+                        );
 
-                        const specificMatch = (!promptText || prompt.text.toLowerCase().includes(promptText)) &&
+                        // Filtros específicos (campos detalhados)
+                        const specificMatch = (
+                            (!promptText || prompt.text.toLowerCase().includes(promptText)) &&
                             (!promptFunction || prompt.function.toLowerCase().includes(promptFunction)) &&
                             (!promptLocation || prompt.location.toLowerCase().includes(promptLocation)) &&
                             (!promptNote || (prompt.note && prompt.note.toLowerCase().includes(promptNote))) &&
-                            (!promptAuthor || prompt.author.toLowerCase().includes(promptAuthor));
+                            (!promptAuthor || prompt.author.toLowerCase().includes(promptAuthor))
+                        );
 
+                        // Filtros de categorias
                         const includeMatch = includeCategories.length === 0 || (Array.isArray(prompt.categories) && prompt.categories.some(cat => includeCategories.includes(cat)));
                         const excludeMatch = excludeCategories.length === 0 || !(Array.isArray(prompt.categories) && prompt.categories.some(cat => excludeCategories.includes(cat)));
 
-                        return (generalMatch || specificMatch) && includeMatch && excludeMatch;
+                        return generalMatch && specificMatch && includeMatch && excludeMatch;
                     })
                     .sort((a, b) => b[1].timestamp - a[1].timestamp);
 
