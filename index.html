@@ -230,13 +230,14 @@
             display: flex; 
             flex-direction: column; 
             align-items: flex-start; 
+            flex: 1; /* Permite que os combo boxes cresçam igualmente */
         }
         .combo-box select { 
             height: 200px; 
             background: #000; 
             color: #fff; 
             border: 1px solid #555; 
-            width: calc(33.33% - 10px); /* Aproximadamente o tamanho do Nome do Autor, ajustado pelo gap */
+            width: 100%; /* Preenche o espaço disponível no container */
         }
         #searchInput, #advSearchInput { 
             width: 100%; 
@@ -254,7 +255,7 @@
             flex-direction: row; 
             gap: 10px; 
             width: 100%; 
-            justify-content: flex-start; 
+            justify-content: space-between; /* Distribui o espaço igualmente */
         }
         .checkbox-container { 
             display: flex; 
@@ -695,7 +696,7 @@
             loadCategoryList();
             const saveBtn = document.getElementById('saveCategoryBtn');
             saveBtn.textContent = "Cadastrar Categoria";
-            saveBtn.removeEventListener('click', editCategoryHandler); // Remove qualquer evento de edição anterior
+            saveBtn.removeEventListener('click', editCategoryHandler);
             saveBtn.addEventListener('click', saveCategoryDefault);
         });
 
@@ -719,7 +720,7 @@
         function editCategoryHandler() {
             const name = document.getElementById('categoryName').value.trim();
             const desc = document.getElementById('categoryDesc').value.trim();
-            const key = this.dataset.key; // Armazena a chave da categoria sendo editada
+            const key = this.dataset.key;
             if (!name || !desc) {
                 document.getElementById('error').textContent = "Preencha todos os campos!";
                 return;
@@ -786,8 +787,8 @@
                 document.getElementById('categoryDesc').value = category.description;
                 const saveBtn = document.getElementById('saveCategoryBtn');
                 saveBtn.textContent = "Alterar Categoria";
-                saveBtn.removeEventListener('click', saveCategoryDefault); // Remove o evento padrão
-                saveBtn.dataset.key = key; // Armazena a chave no botão
+                saveBtn.removeEventListener('click', saveCategoryDefault);
+                saveBtn.dataset.key = key;
                 saveBtn.addEventListener('click', editCategoryHandler);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }, { onlyOnce: true });
