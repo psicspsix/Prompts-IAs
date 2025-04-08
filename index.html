@@ -230,14 +230,14 @@
             display: flex; 
             flex-direction: column; 
             align-items: flex-start; 
-            width: 33%; /* Aproximadamente igual ao Nome do Autor */
+            width: 33%; 
         }
         .combo-box select { 
             height: 200px; 
             background: #000; 
             color: #fff; 
             border: 1px solid #555; 
-            width: 100%; /* Preenche o container do combo-box */
+            width: 100%; 
         }
         #searchInput, #advSearchInput { 
             width: 100%; 
@@ -255,18 +255,18 @@
             flex-direction: row; 
             gap: 10px; 
             width: 100%; 
-            justify-content: flex-start; /* Alinha à esquerda com espaçamento fixo */
+            justify-content: flex-start; 
         }
         .checkbox-container { 
             display: flex; 
             align-items: center; 
             gap: 10px; 
         }
-        #hiddenCheckbox, #searchHiddenCheckbox, #advSearchHiddenCheckbox, #editHiddenCheckbox { 
+        #hiddenCheckbox, #searchHiddenCheckbox, #advSearchHiddenCheckbox, #editHiddenCheckbox, #searchAllPromptsCheckbox { 
             width: 20px; 
             height: 20px; 
         }
-        .category-list { 
+        .category-list, .user-list { 
             margin-top: 50px; 
         }
         .search-btn-small { 
@@ -302,6 +302,7 @@
                 <button id="categoryBtn">Cadastro de Categoria</button>
                 <button id="searchBtn">Pesquisa</button>
                 <button id="advancedSearchBtn" style="display: none;">Pesquisa Avançada</button>
+                <button id="authorizationBtn" style="display: none;">Autorizações</button>
             </div>
         </div>
         <div id="mainContent">
@@ -392,6 +393,10 @@
                             <input type="checkbox" id="searchHiddenCheckbox">
                             <label for="searchHiddenCheckbox">Oculto</label>
                         </div>
+                        <div id="searchAllPromptsCheckboxContainer" class="checkbox-container" style="display: none;">
+                            <input type="checkbox" id="searchAllPromptsCheckbox">
+                            <label for="searchAllPromptsCheckbox">Pesquisar nos prompts de todos os usuários</label>
+                        </div>
                     </div>
                     <button id="doSearchBtn" class="search-btn-small">Pesquisar</button>
                 </div>
@@ -434,6 +439,14 @@
                 <ul id="advSearchResults"></ul>
                 <button id="backBtnAdvSearch">Voltar</button>
             </div>
+            <div id="authorizationScreen" style="display: none;">
+                <h2>Autorizações</h2>
+                <div class="user-list">
+                    <h3>Usuários Cadastrados</h3>
+                    <ul id="userList"></ul>
+                </div>
+                <button id="backBtnAuthorization">Voltar</button>
+            </div>
         </div>
         <div id="error"></div>
         <div id="success"></div>
@@ -462,6 +475,7 @@
         const usersRef = ref(db, 'users');
         let currentUserEmail = null;
         let editingPromptKey = null;
+        let canSearchAllPrompts = false;
 
         function log(message) {
             console.log(`[LOG ${new Date().toLocaleTimeString()}]: ${message}`);
@@ -483,6 +497,7 @@
         const newPasswordInput = document.getElementById('newPasswordInput');
         const messageDiv = document.getElementById('message');
         const advancedSearchBtn = document.getElementById('advancedSearchBtn');
+        const authorizationBtn = document.getElementById('authorizationBtn');
 
         signOut(auth).then(() => {
             log("Logout inicial realizado para garantir tela de login");
@@ -494,14 +509,27 @@
             if (user) {
                 currentUserEmail = user.email;
                 log(`Usuário autenticado: ${currentUserEmail}`);
+                const userRef = ref(db, `users/${user.uid}`);
+                onValue(userRef, (snapshot) => {
+                    const userData = snapshot.val();
+                    canSearchAllPrompts = userData?.canSearchAllPrompts || false;
+                    if (canSearchAllPrompts && currentUserEmail !== "psics.psix.141@gmail.com") {
+                        document.getElementById('searchAllPromptsCheckboxContainer').style.display = 'flex';
+                    } else {
+                        document.getElementById('searchAllPromptsCheckboxContainer').style.display = 'none';
+                    }
+                }, { onlyOnce: true });
+
                 if (currentUserEmail === "psics.psix.141@gmail.com") {
                     advancedSearchBtn.style.display = 'inline-block';
+                    authorizationBtn.style.display = 'inline-block';
                     document.getElementById('hiddenCheckboxContainer').style.display = 'flex';
                     document.getElementById('searchHiddenCheckboxContainer').style.display = 'flex';
                     document.getElementById('advSearchHiddenCheckboxContainer').style.display = 'flex';
                     document.getElementById('editHiddenCheckboxContainer').style.display = 'flex';
                 } else {
                     advancedSearchBtn.style.display = 'none';
+                    authorizationBtn.style.display = 'none';
                     document.getElementById('hiddenCheckboxContainer').style.display = 'none';
                     document.getElementById('searchHiddenCheckboxContainer').style.display = 'none';
                     document.getElementById('advSearchHiddenCheckboxContainer').style.display = 'none';
@@ -512,9 +540,11 @@
                 showRecentPrompts();
             } else {
                 currentUserEmail = null;
+                canSearchAllPrompts = false;
                 loginScreen.style.display = 'flex';
                 appScreen.style.display = 'none';
                 advancedSearchBtn.style.display = 'none';
+                authorizationBtn.style.display = 'none';
             }
         });
 
@@ -561,7 +591,8 @@
                     const user = userCredential.user;
                     set(ref(db, `users/${user.uid}`), {
                         email: newEmail,
-                        password: newPassword
+                        password: newPassword,
+                        canSearchAllPrompts: false
                     }).then(() => {
                         messageDiv.textContent = "Usuário cadastrado com sucesso!";
                         registerContainer.style.display = 'none';
@@ -823,6 +854,7 @@
             showScreen('searchScreen');
             loadCategories(document.getElementById('includeCategories'));
             loadCategories(document.getElementById('excludeCategories'));
+            document.getElementById('searchAllPromptsCheckbox').checked = false;
         });
 
         document.getElementById('advancedSearchBtn').addEventListener('click', () => {
@@ -830,6 +862,42 @@
             loadCategories(document.getElementById('advIncludeCategories'));
             loadCategories(document.getElementById('advExcludeCategories'));
         });
+
+        document.getElementById('authorizationBtn').addEventListener('click', () => {
+            showScreen('authorizationScreen');
+            loadUserList();
+        });
+
+        function loadUserList() {
+            const userList = document.getElementById('userList');
+            onValue(usersRef, (snapshot) => {
+                const users = snapshot.val();
+                userList.innerHTML = '';
+                if (!users) {
+                    userList.innerHTML = '<li>Nenhum usuário cadastrado.</li>';
+                    return;
+                }
+                const sortedUsers = Object.entries(users).sort((a, b) => a[1].email.localeCompare(b[1].email));
+                sortedUsers.forEach(([uid, user]) => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <div class="prompt-row">
+                            <span>${user.email}</span>
+                            <div class="checkbox-container">
+                                <input type="checkbox" id="perm_${uid}" ${user.canSearchAllPrompts ? 'checked' : ''}>
+                                <label for="perm_${uid}">Permissão para pesquisar todos os prompts</label>
+                            </div>
+                        </div>
+                    `;
+                    userList.appendChild(li);
+                    li.querySelector(`#perm_${uid}`).addEventListener('change', (e) => {
+                        set(ref(db, `users/${uid}/canSearchAllPrompts`), e.target.checked)
+                            .then(() => log(`Permissão atualizada para ${user.email}`))
+                            .catch(error => log(`Erro ao atualizar permissão: ${error.message}`));
+                    });
+                });
+            }, { onlyOnce: true });
+        }
 
         function performSearch(isAdvanced = false) {
             const input = document.getElementById(isAdvanced ? 'advSearchInput' : 'searchInput').value.trim().toLowerCase();
@@ -843,6 +911,7 @@
             const includeCategories = Array.from(includeSelect.selectedOptions).map(opt => opt.textContent);
             const excludeCategories = Array.from(excludeSelect.selectedOptions).map(opt => opt.textContent);
             const hiddenOnly = currentUserEmail === "psics.psix.141@gmail.com" && document.getElementById(isAdvanced ? 'advSearchHiddenCheckbox' : 'searchHiddenCheckbox').checked;
+            const searchAllPrompts = !isAdvanced && canSearchAllPrompts && document.getElementById('searchAllPromptsCheckbox').checked;
             const resultsList = document.getElementById(isAdvanced ? 'advSearchResults' : 'searchResults');
 
             if (includeCategories.length > 0 && excludeCategories.length > 0 && includeCategories.some(cat => excludeCategories.includes(cat))) {
@@ -863,9 +932,10 @@
                 const filteredPrompts = Object.entries(prompts)
                     .filter(([_, prompt]) => {
                         // Filtros de visibilidade
-                        if (!isAdvanced && prompt.userEmail !== currentUserEmail && prompt.hidden) return false;
+                        if (!isAdvanced && !searchAllPrompts && prompt.userEmail !== currentUserEmail && prompt.hidden) return false;
                         if (isAdvanced && prompt.hidden && currentUserEmail !== "psics.psix.141@gmail.com" && !hiddenOnly) return false;
                         if (hiddenOnly && (!prompt.hidden || prompt.userEmail !== "psics.psix.141@gmail.com")) return false;
+                        if (!isAdvanced && !searchAllPrompts && prompt.userEmail !== currentUserEmail && prompt.userEmail !== "psics.psix.141@gmail.com") return false;
 
                         // Se não houver critérios, não retorna nada até que o usuário especifique algo
                         if (!hasCriteria) return false;
@@ -899,14 +969,25 @@
                 filteredPrompts.forEach(([key, prompt]) => {
                     const categoriesText = Array.isArray(prompt.categories) ? prompt.categories.join(', ') : 'Sem categorias';
                     const li = document.createElement('li');
-                    li.innerHTML = `
-                        <div class="prompt-row">
-                            <span>${prompt.text} | Função: ${prompt.function} | Local: ${prompt.location} | Nota: ${prompt.note || ''} | Autor: ${prompt.author} | Categorias: ${categoriesText}</span>
-                            <button class="copy-btn" data-text="${prompt.text}">Copiar</button>
-                            <button class="edit-btn" data-key="${key}">Editar</button>
-                            ${currentUserEmail === "psics.psix.141@gmail.com" ? `<button class="delete-btn" data-key="${key}">Excluir</button>` : ''}
-                        </div>
-                    `;
+                    if (isAdvanced) {
+                        li.innerHTML = `
+                            <div class="prompt-row">
+                                <span>Texto: ${prompt.text} | Função: ${prompt.function} | Local: ${prompt.location} | Palavras-chave: ${prompt.note || ''} | Autor: ${prompt.author} | Categorias: ${categoriesText} | E-mail: ${prompt.userEmail}</span>
+                                <button class="copy-btn" data-text="${prompt.text}">Copiar</button>
+                                <button class="edit-btn" data-key="${key}">Editar</button>
+                                ${currentUserEmail === "psics.psix.141@gmail.com" ? `<button class="delete-btn" data-key="${key}">Excluir</button>` : ''}
+                            </div>
+                        `;
+                    } else {
+                        li.innerHTML = `
+                            <div class="prompt-row">
+                                <span>${prompt.text} | Função: ${prompt.function} | Local: ${prompt.location} | Nota: ${prompt.note || ''} | Autor: ${prompt.author} | Categorias: ${categoriesText}</span>
+                                <button class="copy-btn" data-text="${prompt.text}">Copiar</button>
+                                <button class="edit-btn" data-key="${key}">Editar</button>
+                                ${currentUserEmail === "psics.psix.141@gmail.com" ? `<button class="delete-btn" data-key="${key}">Excluir</button>` : ''}
+                            </div>
+                        `;
+                    }
                     resultsList.appendChild(li);
                     li.querySelector('.copy-btn').addEventListener('click', (e) => {
                         navigator.clipboard.writeText(e.target.getAttribute('data-text'));
@@ -1038,6 +1119,7 @@
         document.getElementById('backBtnCategory').addEventListener('click', showRecentPrompts);
         document.getElementById('backBtnSearch').addEventListener('click', showRecentPrompts);
         document.getElementById('backBtnAdvSearch').addEventListener('click', showRecentPrompts);
+        document.getElementById('backBtnAuthorization').addEventListener('click', showRecentPrompts);
 
         showRecentPrompts();
     </script>
