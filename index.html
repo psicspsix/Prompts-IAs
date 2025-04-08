@@ -175,7 +175,7 @@
             height: 50px; 
             width: 50%; 
         }
-        #promptAuthor, #editPromptAuthor { 
+        #promptAuthor, #editPromptAuthor, #searchPromptAuthor, #advSearchPromptAuthor { 
             width: 33.33%; 
             background: #000; 
             color: #fff; 
@@ -184,7 +184,7 @@
             border-radius: 5px; 
             font-size: 20px; 
         }
-        #promptAuthor::placeholder, #editPromptAuthor::placeholder { 
+        #promptAuthor::placeholder, #editPromptAuthor::placeholder, #searchPromptAuthor::placeholder, #advSearchPromptAuthor::placeholder { 
             font-size: 20px; 
             color: #888; 
         }
@@ -229,14 +229,14 @@
         .combo-box { 
             display: flex; 
             flex-direction: column; 
-            align-items: center; 
+            align-items: flex-start; 
         }
         .combo-box select { 
             height: 200px; 
-            background: #333; 
-            color: #e0e0e0; 
+            background: #000; /* Tema noir */
+            color: #fff; 
             border: 1px solid #555; 
-            width: 333.3%; 
+            width: 33.33%; 
         }
         #searchInput, #advSearchInput { 
             width: 100%; 
@@ -247,22 +247,30 @@
             border: 1px solid #555; 
             border-radius: 5px; 
             box-sizing: border-box; 
-            margin-bottom: 40px; /* 4 linhas de espaço */
+            margin-bottom: 10px; 
         }
         .prompt-container { 
             display: flex; 
             flex-direction: row; 
             gap: 10px; 
             width: 100%; 
-            justify-content: center; 
+            justify-content: flex-start; 
         }
         .checkbox-container { 
             display: flex; 
             align-items: center; 
             gap: 10px; 
         }
+        #hiddenCheckbox, #searchHiddenCheckbox, #advSearchHiddenCheckbox { 
+            width: 20px; /* Checkbox maior */
+            height: 20px; 
+        }
         .category-list { 
-            margin-top: 50px; /* 5 linhas de espaço */
+            margin-top: 50px; 
+        }
+        .search-btn-small { 
+            padding: 5px 10px; /* Tamanho do texto */
+            font-size: 16px; 
         }
     </style>
 </head>
@@ -352,6 +360,7 @@
             <div id="searchScreen" style="display: none;">
                 <div class="search-container">
                     <input type="text" id="searchInput" placeholder="Digite o texto para pesquisa">
+                    <button id="doSearchBtnTop" class="search-btn-small">Pesquisar</button>
                     <div class="input-row">
                         <textarea id="searchPromptText" placeholder="Digite o texto do prompt"></textarea>
                         <textarea id="searchPromptFunction" placeholder="Descreva a função do prompt"></textarea>
@@ -361,14 +370,21 @@
                         </div>
                         <div class="prompt-container">
                             <input type="text" id="searchPromptAuthor" placeholder="Nome do autor">
-                            <select id="includeCategories" multiple></select>
+                            <div class="combo-box">
+                                <label>Incluir Categorias:</label>
+                                <select id="includeCategories" multiple></select>
+                            </div>
+                            <div class="combo-box">
+                                <label>Excluir Categorias:</label>
+                                <select id="excludeCategories" multiple></select>
+                            </div>
+                        </div>
+                        <div id="searchHiddenCheckboxContainer" class="checkbox-container" style="display: none;">
+                            <input type="checkbox" id="searchHiddenCheckbox">
+                            <label for="searchHiddenCheckbox">Oculto</label>
                         </div>
                     </div>
-                    <div class="combo-box">
-                        <label>Excluir Categorias:</label>
-                        <select id="excludeCategories" multiple></select>
-                    </div>
-                    <button id="doSearchBtn">Pesquisar</button>
+                    <button id="doSearchBtn" class="search-btn-small">Pesquisar</button>
                 </div>
                 <button id="txtSearchBtn">TXT</button>
                 <textarea id="txtOutput" placeholder="Resultados da pesquisa aparecerão aqui"></textarea>
@@ -378,6 +394,7 @@
             <div id="advancedSearchScreen" style="display: none;">
                 <div class="search-container">
                     <input type="text" id="advSearchInput" placeholder="Digite o texto para pesquisa avançada">
+                    <button id="doAdvSearchBtnTop" class="search-btn-small">Pesquisar</button>
                     <div class="input-row">
                         <textarea id="advSearchPromptText" placeholder="Digite o texto do prompt"></textarea>
                         <textarea id="advSearchPromptFunction" placeholder="Descreva a função do prompt"></textarea>
@@ -387,14 +404,21 @@
                         </div>
                         <div class="prompt-container">
                             <input type="text" id="advSearchPromptAuthor" placeholder="Nome do autor">
-                            <select id="advIncludeCategories" multiple></select>
+                            <div class="combo-box">
+                                <label>Incluir Categorias:</label>
+                                <select id="advIncludeCategories" multiple></select>
+                            </div>
+                            <div class="combo-box">
+                                <label>Excluir Categorias:</label>
+                                <select id="advExcludeCategories" multiple></select>
+                            </div>
+                        </div>
+                        <div id="advSearchHiddenCheckboxContainer" class="checkbox-container" style="display: none;">
+                            <input type="checkbox" id="advSearchHiddenCheckbox">
+                            <label for="advSearchHiddenCheckbox">Oculto</label>
                         </div>
                     </div>
-                    <div class="combo-box">
-                        <label>Excluir Categorias:</label>
-                        <select id="advExcludeCategories" multiple></select>
-                    </div>
-                    <button id="doAdvSearchBtn">Pesquisar Avançado</button>
+                    <button id="doAdvSearchBtn" class="search-btn-small">Pesquisar</button>
                 </div>
                 <button id="txtAdvSearchBtn">TXT</button>
                 <textarea id="txtOutputAdv" placeholder="Resultados da pesquisa avançada aparecerão aqui"></textarea>
@@ -464,9 +488,13 @@
                 if (currentUserEmail === "psics.psix.141@gmail.com") {
                     advancedSearchBtn.style.display = 'inline-block';
                     document.getElementById('hiddenCheckboxContainer').style.display = 'flex';
+                    document.getElementById('searchHiddenCheckboxContainer').style.display = 'flex';
+                    document.getElementById('advSearchHiddenCheckboxContainer').style.display = 'flex';
                 } else {
                     advancedSearchBtn.style.display = 'none';
                     document.getElementById('hiddenCheckboxContainer').style.display = 'none';
+                    document.getElementById('searchHiddenCheckboxContainer').style.display = 'none';
+                    document.getElementById('advSearchHiddenCheckboxContainer').style.display = 'none';
                 }
                 loginScreen.style.display = 'none';
                 appScreen.style.display = 'block';
@@ -657,9 +685,12 @@
         document.getElementById('categoryBtn').addEventListener('click', () => {
             showScreen('categoryScreen');
             loadCategoryList();
+            document.getElementById('saveCategoryBtn').textContent = "Cadastrar Categoria"; // Reseta o texto
         });
 
-        document.getElementById('saveCategoryBtn').addEventListener('click', () => {
+        document.getElementById('saveCategoryBtn').addEventListener('click', saveCategoryDefault);
+
+        function saveCategoryDefault() {
             const name = document.getElementById('categoryName').value.trim();
             const desc = document.getElementById('categoryDesc').value.trim();
             if (!name || !desc) {
@@ -674,7 +705,7 @@
                     loadCategoryList();
                 })
                 .catch(error => log(`Erro ao cadastrar categoria: ${error.message}`));
-        });
+        }
 
         function loadCategoryList() {
             const categoryList = document.getElementById('categoryList');
@@ -717,6 +748,7 @@
                 const category = snapshot.val();
                 document.getElementById('categoryName').value = category.name;
                 document.getElementById('categoryDesc').value = category.description;
+                document.getElementById('saveCategoryBtn').textContent = "Alterar Categoria";
                 document.getElementById('saveCategoryBtn').onclick = () => {
                     const newName = document.getElementById('categoryName').value.trim();
                     const newDesc = document.getElementById('categoryDesc').value.trim();
@@ -729,8 +761,9 @@
                             document.getElementById('success').textContent = "Categoria alterada com sucesso!";
                             document.getElementById('categoryName').value = '';
                             document.getElementById('categoryDesc').value = '';
-                            loadCategoryList();
+                            document.getElementById('saveCategoryBtn').textContent = "Cadastrar Categoria";
                             document.getElementById('saveCategoryBtn').onclick = saveCategoryDefault;
+                            loadCategoryList();
                         })
                         .catch(error => log(`Erro ao alterar categoria: ${error.message}`));
                 };
@@ -748,8 +781,6 @@
                     .catch(error => log(`Erro ao excluir categoria: ${error.message}`));
             }
         }
-
-        const saveCategoryDefault = document.getElementById('saveCategoryBtn').onclick;
 
         document.getElementById('searchBtn').addEventListener('click', () => {
             showScreen('searchScreen');
@@ -774,6 +805,7 @@
             const excludeSelect = document.getElementById(isAdvanced ? 'advExcludeCategories' : 'excludeCategories');
             const includeCategories = Array.from(includeSelect.selectedOptions).map(opt => opt.textContent);
             const excludeCategories = Array.from(excludeSelect.selectedOptions).map(opt => opt.textContent);
+            const hiddenOnly = currentUserEmail === "psics.psix.141@gmail.com" && document.getElementById(isAdvanced ? 'advSearchHiddenCheckbox' : 'searchHiddenCheckbox').checked;
             const resultsList = document.getElementById(isAdvanced ? 'advSearchResults' : 'searchResults');
 
             if (includeCategories.length > 0 && excludeCategories.length > 0 && includeCategories.some(cat => excludeCategories.includes(cat))) {
@@ -792,7 +824,8 @@
                 const filteredPrompts = Object.entries(prompts)
                     .filter(([_, prompt]) => {
                         if (!isAdvanced && prompt.userEmail !== currentUserEmail && prompt.hidden) return false;
-                        if (isAdvanced && prompt.hidden && currentUserEmail !== "psics.psix.141@gmail.com") return false;
+                        if (isAdvanced && prompt.hidden && currentUserEmail !== "psics.psix.141@gmail.com" && !hiddenOnly) return false;
+                        if (hiddenOnly && (!prompt.hidden || prompt.userEmail !== "psics.psix.141@gmail.com")) return false;
 
                         const generalMatch = !input || prompt.text.toLowerCase().includes(input) ||
                             prompt.function.toLowerCase().includes(input) ||
@@ -906,7 +939,7 @@
                 categories,
                 userEmail: currentUserEmail,
                 timestamp: Date.now(),
-                hidden: false // Não há checkbox na edição, mantém o valor original ou false
+                hidden: false
             };
 
             set(ref(db, `prompts/${editingPromptKey}`), updatedPrompt)
@@ -919,7 +952,9 @@
         });
 
         document.getElementById('doSearchBtn').addEventListener('click', () => performSearch(false));
+        document.getElementById('doSearchBtnTop').addEventListener('click', () => performSearch(false));
         document.getElementById('doAdvSearchBtn').addEventListener('click', () => performSearch(true));
+        document.getElementById('doAdvSearchBtnTop').addEventListener('click', () => performSearch(true));
 
         function exportSearchToTxt(isAdvanced = false) {
             const resultsList = document.getElementById(isAdvanced ? 'advSearchResults' : 'searchResults');
