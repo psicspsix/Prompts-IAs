@@ -230,14 +230,13 @@
             display: flex; 
             flex-direction: column; 
             align-items: flex-start; 
-            flex: 1; /* Permite que os combo boxes cresçam igualmente */
         }
         .combo-box select { 
             height: 200px; 
             background: #000; 
             color: #fff; 
             border: 1px solid #555; 
-            width: 100%; /* Preenche o espaço disponível no container */
+            width: 30%; 
         }
         #searchInput, #advSearchInput { 
             width: 100%; 
@@ -255,7 +254,7 @@
             flex-direction: row; 
             gap: 10px; 
             width: 100%; 
-            justify-content: space-between; /* Distribui o espaço igualmente */
+            justify-content: flex-start; 
         }
         .checkbox-container { 
             display: flex; 
@@ -625,10 +624,11 @@
                     .sort((a, b) => b[1].timestamp - a[1].timestamp)
                     .slice(0, 10);
                 userPrompts.forEach(([key, prompt]) => {
+                    const categoriesText = Array.isArray(prompt.categories) ? prompt.categories.join(', ') : 'Sem categorias';
                     const li = document.createElement('li');
                     li.innerHTML = `
                         <div class="prompt-row">
-                            <span>${prompt.text} | Autor: ${prompt.author} | Categorias: ${prompt.categories.join(', ')}</span>
+                            <span>${prompt.text} | Autor: ${prompt.author} | Categorias: ${categoriesText}</span>
                             <button class="copy-btn" data-text="${prompt.text}">Copiar</button>
                         </div>
                     `;
@@ -653,7 +653,7 @@
             const note = document.getElementById('promptNote').value.trim();
             let author = document.getElementById('promptAuthor').value.trim();
             const categorySelect = document.getElementById('categorySelect');
-            const categories = Array.from(categorySelect.selectedOptions).map(option => option.textContent);
+            const categories = Array.from(categorySelect.selectedOptions).map(option => option.textContent) || [];
             const hidden = currentUserEmail === "psics.psix.141@gmail.com" && document.getElementById('hiddenCheckbox').checked;
 
             if (!text || !func) {
@@ -671,7 +671,7 @@
                 location,
                 note,
                 author,
-                categories,
+                categories: categories.length > 0 ? categories : [],
                 userEmail: currentUserEmail,
                 timestamp: Date.now(),
                 hidden: hidden || false
@@ -819,7 +819,7 @@
         });
 
         function performSearch(isAdvanced = false) {
-            const input = document.getElementById(isAdvanced ? 'advSearchInput' : 'searchInput').value.trim().toLowerCase();
+            const input = document.getElementById(isAdvanced ? 'advSearchInput/journal.pone.0262488' : 'searchInput').value.trim().toLowerCase();
             const promptText = document.getElementById(isAdvanced ? 'advSearchPromptText' : 'searchPromptText').value.trim().toLowerCase();
             const promptFunction = document.getElementById(isAdvanced ? 'advSearchPromptFunction' : 'searchPromptFunction').value.trim().toLowerCase();
             const promptLocation = document.getElementById(isAdvanced ? 'advSearchPromptLocation' : 'searchPromptLocation').value.trim().toLowerCase();
@@ -863,18 +863,19 @@
                             (!promptNote || (prompt.note && prompt.note.toLowerCase().includes(promptNote))) &&
                             (!promptAuthor || prompt.author.toLowerCase().includes(promptAuthor));
 
-                        const includeMatch = includeCategories.length === 0 || prompt.categories.some(cat => includeCategories.includes(cat));
-                        const excludeMatch = excludeCategories.length === 0 || !prompt.categories.some(cat => excludeCategories.includes(cat));
+                        const includeMatch = includeCategories.length === 0 || (Array.isArray(prompt.categories) && prompt.categories.some(cat => includeCategories.includes(cat)));
+                        const excludeMatch = excludeCategories.length === 0 || !(Array.isArray(prompt.categories) && prompt.categories.some(cat => excludeCategories.includes(cat)));
 
                         return (generalMatch || specificMatch) && includeMatch && excludeMatch;
                     })
                     .sort((a, b) => b[1].timestamp - a[1].timestamp);
 
                 filteredPrompts.forEach(([key, prompt]) => {
+                    const categoriesText = Array.isArray(prompt.categories) ? prompt.categories.join(', ') : 'Sem categorias';
                     const li = document.createElement('li');
                     li.innerHTML = `
                         <div class="prompt-row">
-                            <span>${prompt.text} | Função: ${prompt.function} | Local: ${prompt.location} | Nota: ${prompt.note || ''} | Autor: ${prompt.author} | Categorias: ${prompt.categories.join(', ')}</span>
+                            <span>${prompt.text} | Função: ${prompt.function} | Local: ${prompt.location} | Nota: ${prompt.note || ''} | Autor: ${prompt.author} | Categorias: ${categoriesText}</span>
                             <button class="copy-btn" data-text="${prompt.text}">Copiar</button>
                             <button class="edit-btn" data-key="${key}">Editar</button>
                             ${currentUserEmail === "psics.psix.141@gmail.com" ? `<button class="delete-btn" data-key="${key}">Excluir</button>` : ''}
@@ -919,7 +920,7 @@
                 document.getElementById('editPromptLocation').value = prompt.location;
                 document.getElementById('editPromptNote').value = prompt.note || '';
                 document.getElementById('editPromptAuthor').value = prompt.author;
-                loadCategories(document.getElementById('editCategorySelect'), prompt.categories);
+                loadCategories(document.getElementById('editCategorySelect'), prompt.categories || []);
                 editingPromptKey = key;
             }, { onlyOnce: true });
         }
@@ -960,7 +961,7 @@
                 location,
                 note,
                 author,
-                categories,
+                categories: categories.length > 0 ? categories : [],
                 userEmail: currentUserEmail,
                 timestamp: Date.now(),
                 hidden: false
