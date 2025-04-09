@@ -181,7 +181,7 @@
             width: 50%; 
         }
         #promptAuthor, #editPromptAuthor, #searchPromptAuthor, #advSearchPromptAuthor { 
-            width: 33.33%; 
+            width: 16.665%; 
             background: #000; 
             color: #fff; 
             padding: 10px; 
@@ -189,7 +189,17 @@
             border-radius: 5px; 
             font-size: 20px; 
         }
-        #promptAuthor::placeholder, #editPromptAuthor::placeholder, #searchPromptAuthor::placeholder, #advSearchPromptAuthor::placeholder { 
+        #promptUserEmail, #editPromptUserEmail { 
+            width: 16.665%; 
+            background: #000; 
+            color: #fff; 
+            padding: 10px; 
+            border: 1px solid #555; 
+            border-radius: 5px; 
+            font-size: 20px; 
+        }
+        #promptAuthor::placeholder, #editPromptAuthor::placeholder, #searchPromptAuthor::placeholder, #advSearchPromptAuthor::placeholder,
+        #promptUserEmail::placeholder, #editPromptUserEmail::placeholder { 
             font-size: 20px; 
             color: #888; 
         }
@@ -326,6 +336,7 @@
                     </div>
                     <div class="prompt-container">
                         <input type="text" id="promptAuthor" placeholder="Nome do autor">
+                        <input type="text" id="promptUserEmail" placeholder="E-mail do Usuário">
                         <select id="categorySelect" multiple></select>
                     </div>
                     <div class="checkbox-container">
@@ -348,6 +359,7 @@
                     </div>
                     <div class="prompt-container">
                         <input type="text" id="editPromptAuthor" placeholder="Nome do autor">
+                        <input type="text" id="editPromptUserEmail" placeholder="E-mail do Usuário">
                         <select id="editCategorySelect" multiple></select>
                     </div>
                     <div class="checkbox-container">
@@ -497,6 +509,7 @@
         const newUserInput = document.getElementById('newUserInput');
         const newPasswordInput = document.getElementById('newPasswordInput');
         const messageDiv = document.getElementById('message');
+        const searchBtn = document.getElementById('searchBtn');
         const advancedSearchBtn = document.getElementById('advancedSearchBtn');
         const authorizationBtn = document.getElementById('authorizationBtn');
 
@@ -522,12 +535,14 @@
                 }, { onlyOnce: true });
 
                 if (currentUserEmail === "psics.psix.141@gmail.com") {
+                    searchBtn.style.display = 'none'; // Remove Pesquisa Simples
                     advancedSearchBtn.style.display = 'inline-block';
                     authorizationBtn.style.display = 'inline-block';
                     document.getElementById('hiddenCheckboxContainer').style.display = 'flex';
                     document.getElementById('advSearchHiddenCheckboxContainer').style.display = 'flex';
                     document.getElementById('editHiddenCheckboxContainer').style.display = 'flex';
                 } else {
+                    searchBtn.style.display = 'inline-block';
                     advancedSearchBtn.style.display = 'none';
                     authorizationBtn.style.display = 'none';
                     document.getElementById('hiddenCheckboxContainer').style.display = 'none';
@@ -542,6 +557,7 @@
                 canSearchAllPrompts = false;
                 loginScreen.style.display = 'flex';
                 appScreen.style.display = 'none';
+                searchBtn.style.display = 'inline-block';
                 advancedSearchBtn.style.display = 'none';
                 authorizationBtn.style.display = 'none';
             }
@@ -704,6 +720,7 @@
         document.getElementById('storePromptBtn').addEventListener('click', () => {
             showScreen('storePromptScreen');
             loadCategories(document.getElementById('categorySelect'));
+            document.getElementById('promptUserEmail').value = currentUserEmail; // Preenche automaticamente
         });
 
         document.getElementById('savePromptBtn').addEventListener('click', () => {
@@ -712,6 +729,7 @@
             const location = document.getElementById('promptLocation').value.trim();
             const note = document.getElementById('promptNote').value.trim();
             let author = document.getElementById('promptAuthor').value.trim();
+            const userEmail = document.getElementById('promptUserEmail').value.trim();
             const categorySelect = document.getElementById('categorySelect');
             const categories = Array.from(categorySelect.selectedOptions).map(option => option.textContent) || [];
             const hidden = currentUserEmail === "psics.psix.141@gmail.com" && document.getElementById('hiddenCheckbox').checked;
@@ -731,8 +749,8 @@
                 location,
                 note,
                 author,
+                userEmail: userEmail || currentUserEmail,
                 categories: categories.length > 0 ? categories : [],
-                userEmail: currentUserEmail,
                 timestamp: Date.now(),
                 hidden: hidden || false
             };
@@ -745,6 +763,7 @@
                     document.getElementById('promptLocation').value = '';
                     document.getElementById('promptNote').value = '';
                     document.getElementById('promptAuthor').value = '';
+                    document.getElementById('promptUserEmail').value = currentUserEmail;
                     categorySelect.selectedIndex = -1;
                     if (hidden) document.getElementById('hiddenCheckbox').checked = false;
                 })
@@ -909,6 +928,7 @@
                             <div class="checkbox-container">
                                 <input type="checkbox" id="perm_${uid}" ${user.canSearchAllPrompts ? 'checked' : ''}>
                                 <label for="perm_${uid}">Permissão para pesquisar todos os prompts</label>
+                                ${user.email !== "psics.psix.141@gmail.com" ? `<button class="delete-user-btn" data-uid="${uid}">Excluir</button>` : ''}
                             </div>
                         </div>
                     `;
@@ -918,8 +938,36 @@
                             .then(() => log(`Permissão atualizada para ${user.email}`))
                             .catch(error => log(`Erro ao atualizar permissão: ${error.message}`));
                     });
+                    if (user.email !== "psics.psix.141@gmail.com") {
+                        li.querySelector('.delete-user-btn').addEventListener('click', (e) => {
+                            const uid = e.target.getAttribute('data-uid');
+                            deleteUser(uid);
+                        });
+                    }
                 });
             }, { onlyOnce: true });
+        }
+
+        function deleteUser(uid) {
+            if (confirm("Tem certeza que deseja excluir este usuário? Isso também excluirá todos os seus prompts.")) {
+                const userRef = ref(db, `users/${uid}`);
+                const userPromptsRef = ref(db, 'prompts');
+                onValue(userPromptsRef, (snapshot) => {
+                    const prompts = snapshot.val();
+                    if (prompts) {
+                        const userPrompts = Object.entries(prompts).filter(([_, prompt]) => prompt.userEmail === currentUserEmail);
+                        userPrompts.forEach(([key, _]) => {
+                            remove(ref(db, `prompts/${key}`));
+                        });
+                    }
+                }, { onlyOnce: true });
+                remove(userRef)
+                    .then(() => {
+                        document.getElementById('success').textContent = "Usuário e seus prompts excluídos com sucesso!";
+                        loadUserList();
+                    })
+                    .catch(error => log(`Erro ao excluir usuário: ${error.message}`));
+            }
         }
 
         function performSearch(isAdvanced = false) {
@@ -1007,8 +1055,8 @@
                                     <span>Local: ${prompt.location}</span>
                                     <span>Palavras-chave: ${prompt.note || ''}</span>
                                     <span>Autor: ${prompt.author}</span>
-                                    <span>Categorias: ${categoriesText}</span>
                                     <span>E-mail: ${prompt.userEmail}</span>
+                                    <span>Categorias: ${categoriesText}</span>
                                 </div>
                                 <button class="copy-btn" data-text="${prompt.text}">Copiar</button>
                                 <button class="edit-btn" data-key="${key}">Editar</button>
@@ -1066,6 +1114,7 @@
                 document.getElementById('editPromptLocation').value = prompt.location;
                 document.getElementById('editPromptNote').value = prompt.note || '';
                 document.getElementById('editPromptAuthor').value = prompt.author;
+                document.getElementById('editPromptUserEmail').value = prompt.userEmail;
                 loadCategories(document.getElementById('editCategorySelect'), prompt.categories || []);
                 if (currentUserEmail === "psics.psix.141@gmail.com") {
                     document.getElementById('editHiddenCheckbox').checked = prompt.hidden || false;
@@ -1096,6 +1145,7 @@
             const location = document.getElementById('editPromptLocation').value.trim();
             const note = document.getElementById('editPromptNote').value.trim();
             let author = document.getElementById('editPromptAuthor').value.trim();
+            const userEmail = document.getElementById('editPromptUserEmail').value.trim();
             const categorySelect = document.getElementById('editCategorySelect');
             const categories = Array.from(categorySelect.selectedOptions).map(option => option.textContent);
             const hidden = currentUserEmail === "psics.psix.141@gmail.com" && document.getElementById('editHiddenCheckbox').checked;
@@ -1115,8 +1165,8 @@
                 location,
                 note,
                 author,
+                userEmail: userEmail || currentUserEmail,
                 categories: categories.length > 0 ? categories : [],
-                userEmail: currentUserEmail,
                 timestamp: Date.now(),
                 hidden: hidden || false
             };
@@ -1147,7 +1197,6 @@
             let content = '';
             resultsList.querySelectorAll('li').forEach(li => {
                 if (isAdvanced) {
-                    // Para Pesquisa Avançada: Copia todas as informações exibidas
                     const details = li.querySelector('.adv-prompt-details');
                     if (details) {
                         const spans = details.querySelectorAll('span');
@@ -1157,7 +1206,6 @@
                         content += '\n';
                     }
                 } else {
-                    // Para Pesquisa Simples: Copia apenas texto e autor
                     const text = li.querySelector('span').textContent;
                     content += `${text}\n\n`;
                 }
