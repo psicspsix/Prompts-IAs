@@ -660,12 +660,10 @@
                 }
                 let userPrompts;
                 if (currentUserEmail === "psics.psix.141@gmail.com") {
-                    // Para psics.psix.141@gmail.com: mostra últimos 10 prompts de todos os usuários
                     userPrompts = Object.entries(prompts)
                         .sort((a, b) => b[1].timestamp - a[1].timestamp)
                         .slice(0, 10);
                 } else {
-                    // Para outros usuários: mostra apenas os prompts deles
                     userPrompts = Object.entries(prompts)
                         .filter(([_, prompt]) => prompt.userEmail === currentUserEmail)
                         .sort((a, b) => b[1].timestamp - a[1].timestamp)
@@ -956,20 +954,16 @@
 
                 const filteredPrompts = Object.entries(prompts)
                     .filter(([_, prompt]) => {
-                        // Filtros de visibilidade
                         if (!isAdvanced && !searchAllPrompts && prompt.userEmail !== currentUserEmail) return false;
                         if (!isAdvanced && prompt.hidden && prompt.userEmail === "psics.psix.141@gmail.com") return false;
                         if (isAdvanced && currentUserEmail !== "psics.psix.141@gmail.com" && prompt.hidden) return false;
 
-                        // Pesquisa Avançada: "Incluir Ocultos" sem critérios mostra apenas ocultos
                         if (isAdvanced && includeHidden && !hasCriteria) {
                             return prompt.hidden && prompt.userEmail === "psics.psix.141@gmail.com";
                         }
 
-                        // Se não houver critérios e não for apenas "Incluir Ocultos", não retorna nada
                         if (!hasCriteria && !includeHidden) return false;
 
-                        // Filtros de pesquisa geral (input principal)
                         const generalMatch = !input || (
                             prompt.text.toLowerCase().includes(input) ||
                             prompt.function.toLowerCase().includes(input) ||
@@ -980,7 +974,6 @@
                             prompt.userEmail.toLowerCase().includes(input)
                         );
 
-                        // Filtros específicos (campos detalhados)
                         const specificMatch = (
                             (!promptText || prompt.text.toLowerCase().includes(promptText)) &&
                             (!promptFunction || prompt.function.toLowerCase().includes(promptFunction)) &&
@@ -989,16 +982,13 @@
                             (!promptAuthor || prompt.author.toLowerCase().includes(promptAuthor))
                         );
 
-                        // Filtros de categorias
                         const includeMatch = includeCategories.length === 0 || (Array.isArray(prompt.categories) && prompt.categories.some(cat => includeCategories.includes(cat)));
                         const excludeMatch = excludeCategories.length === 0 || !(Array.isArray(prompt.categories) && prompt.categories.some(cat => excludeCategories.includes(cat)));
 
-                        // Se "Incluir Ocultos" estiver marcado, inclui ocultos na busca com critérios
                         if (isAdvanced && includeHidden && hasCriteria) {
                             return generalMatch && specificMatch && includeMatch && excludeMatch;
                         }
 
-                        // Caso padrão: exclui ocultos de psics.psix.141@gmail.com se não for "Incluir Ocultos"
                         if (prompt.hidden && prompt.userEmail === "psics.psix.141@gmail.com" && !includeHidden) return false;
 
                         return generalMatch && specificMatch && includeMatch && excludeMatch;
@@ -1156,8 +1146,21 @@
             const txtOutput = document.getElementById(isAdvanced ? 'txtOutputAdv' : 'txtOutput');
             let content = '';
             resultsList.querySelectorAll('li').forEach(li => {
-                const text = li.querySelector('span').textContent;
-                content += `${text}\n\n`;
+                if (isAdvanced) {
+                    // Para Pesquisa Avançada: Copia todas as informações exibidas
+                    const details = li.querySelector('.adv-prompt-details');
+                    if (details) {
+                        const spans = details.querySelectorAll('span');
+                        spans.forEach(span => {
+                            content += `${span.textContent}\n`;
+                        });
+                        content += '\n';
+                    }
+                } else {
+                    // Para Pesquisa Simples: Copia apenas texto e autor
+                    const text = li.querySelector('span').textContent;
+                    content += `${text}\n\n`;
+                }
             });
             txtOutput.value = content || 'Nenhum resultado para exportar.';
             txtOutput.style.display = 'block';
