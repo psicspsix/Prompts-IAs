@@ -180,7 +180,7 @@
             height: 50px; 
             width: 50%; 
         }
-        #promptAuthor, #editPromptAuthor, #searchPromptAuthor, #advSearchPromptAuthor { 
+        #promptAuthor, #editPromptAuthor, #searchPromptAuthor { 
             width: 16.665%; 
             background: #000; 
             color: #fff; 
@@ -189,7 +189,7 @@
             border-radius: 5px; 
             font-size: 20px; 
         }
-        #promptUserEmail, #editPromptUserEmail, #advSearchPromptUserEmail { 
+        #promptUserEmail, #editPromptUserEmail { 
             width: 16.665%; 
             background: #000; 
             color: #fff; 
@@ -198,8 +198,20 @@
             border-radius: 5px; 
             font-size: 20px; 
         }
-        #promptAuthor::placeholder, #editPromptAuthor::placeholder, #searchPromptAuthor::placeholder, #advSearchPromptAuthor::placeholder,
-        #promptUserEmail::placeholder, #editPromptUserEmail::placeholder, #advSearchPromptUserEmail::placeholder { 
+        #advSearchPromptAuthor, #advSearchPromptUserEmail { 
+            width: 33.33%; 
+            height: 100px; 
+            background: #000; 
+            color: #fff; 
+            padding: 10px; 
+            border: 1px solid #555; 
+            border-radius: 5px; 
+            font-size: 20px; 
+            box-sizing: border-box; 
+        }
+        #promptAuthor::placeholder, #editPromptAuthor::placeholder, #searchPromptAuthor::placeholder, 
+        #promptUserEmail::placeholder, #editPromptUserEmail::placeholder, 
+        #advSearchPromptAuthor::placeholder, #advSearchPromptUserEmail::placeholder { 
             font-size: 20px; 
             color: #888; 
         }
@@ -271,6 +283,12 @@
             gap: 10px; 
             width: 100%; 
             justify-content: flex-start; 
+        }
+        .adv-search-author-container { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 0px; 
+            width: 33.33%; 
         }
         .checkbox-container { 
             display: flex; 
@@ -433,8 +451,10 @@
                             <textarea id="advSearchPromptNote" placeholder="Digite as palavras-chaves"></textarea>
                         </div>
                         <div class="prompt-container">
-                            <input type="text" id="advSearchPromptAuthor" placeholder="Nome do autor">
-                            <input type="text" id="advSearchPromptUserEmail" placeholder="E-mail do Usuário">
+                            <div class="adv-search-author-container">
+                                <input type="text" id="advSearchPromptAuthor" placeholder="Nome do autor">
+                                <input type="text" id="advSearchPromptUserEmail" placeholder="E-mail do Usuário">
+                            </div>
                             <div class="combo-box">
                                 <label>Incluir Categorias:</label>
                                 <select id="advIncludeCategories" multiple></select>
