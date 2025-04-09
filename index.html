@@ -267,7 +267,7 @@
             align-items: center; 
             gap: 10px; 
         }
-        #hiddenCheckbox, #searchHiddenCheckbox, #advSearchHiddenCheckbox, #editHiddenCheckbox, #searchAllPromptsCheckbox { 
+        #hiddenCheckbox, #advSearchHiddenCheckbox, #editHiddenCheckbox, #searchAllPromptsCheckbox { 
             width: 20px; 
             height: 20px; 
         }
@@ -394,10 +394,6 @@
                                 <select id="excludeCategories" multiple></select>
                             </div>
                         </div>
-                        <div id="searchHiddenCheckboxContainer" class="checkbox-container" style="display: none;">
-                            <input type="checkbox" id="searchHiddenCheckbox">
-                            <label for="searchHiddenCheckbox">Oculto</label>
-                        </div>
                         <div id="searchAllPromptsCheckboxContainer" class="checkbox-container" style="display: none;">
                             <input type="checkbox" id="searchAllPromptsCheckbox">
                             <label for="searchAllPromptsCheckbox">Pesquisar nos prompts de todos os usuários</label>
@@ -434,7 +430,7 @@
                         </div>
                         <div id="advSearchHiddenCheckboxContainer" class="checkbox-container" style="display: none;">
                             <input type="checkbox" id="advSearchHiddenCheckbox">
-                            <label for="advSearchHiddenCheckbox">Oculto</label>
+                            <label for="advSearchHiddenCheckbox">Incluir Ocultos</label>
                         </div>
                     </div>
                     <button id="doAdvSearchBtn" class="search-btn-small">Pesquisar</button>
@@ -468,7 +464,7 @@
             projectId: "gerenciador-de-prompts-de-ias",
             storageBucket: "gerenciador-de-prompts-de-ias.firebasestorage.app",
             messagingSenderId: "902314577084",
-            appId: "1:902314577084:webFFEafc0081d83b048894b9",
+            appId: "1:902314577084:web:a97afc0081d83b048894b9",
             measurementId: "G-5C0RJFG1GH"
         };
 
@@ -529,14 +525,12 @@
                     advancedSearchBtn.style.display = 'inline-block';
                     authorizationBtn.style.display = 'inline-block';
                     document.getElementById('hiddenCheckboxContainer').style.display = 'flex';
-                    document.getElementById('searchHiddenCheckboxContainer').style.display = 'flex';
                     document.getElementById('advSearchHiddenCheckboxContainer').style.display = 'flex';
                     document.getElementById('editHiddenCheckboxContainer').style.display = 'flex';
                 } else {
                     advancedSearchBtn.style.display = 'none';
                     authorizationBtn.style.display = 'none';
                     document.getElementById('hiddenCheckboxContainer').style.display = 'none';
-                    document.getElementById('searchHiddenCheckboxContainer').style.display = 'none';
                     document.getElementById('advSearchHiddenCheckboxContainer').style.display = 'none';
                     document.getElementById('editHiddenCheckboxContainer').style.display = 'none';
                 }
@@ -675,6 +669,10 @@
                         <div class="prompt-row">
                             <span>${prompt.text} | Autor: ${prompt.author} | Categorias: ${categoriesText}</span>
                             <button class="copy-btn" data-text="${prompt.text}">Copiar</button>
+                            ${currentUserEmail === "psics.psix.141@gmail.com" ? `
+                                <button class="edit-btn" data-key="${key}">Editar</button>
+                                <button class="delete-btn" data-key="${key}">Excluir</button>
+                            ` : ''}
                         </div>
                     `;
                     promptList.appendChild(li);
@@ -682,6 +680,16 @@
                         navigator.clipboard.writeText(e.target.getAttribute('data-text'));
                         document.getElementById('success').textContent = "Prompt copiado para a área de transferência!";
                     });
+                    if (currentUserEmail === "psics.psix.141@gmail.com") {
+                        li.querySelector('.edit-btn').addEventListener('click', (e) => {
+                            const key = e.target.getAttribute('data-key');
+                            editPrompt(key);
+                        });
+                        li.querySelector('.delete-btn').addEventListener('click', (e) => {
+                            const key = e.target.getAttribute('data-key');
+                            deletePrompt(key, false);
+                        });
+                    }
                 });
             }, { onlyOnce: true });
         }
@@ -866,6 +874,9 @@
             showScreen('advancedSearchScreen');
             loadCategories(document.getElementById('advIncludeCategories'));
             loadCategories(document.getElementById('advExcludeCategories'));
+            if (currentUserEmail === "psics.psix.141@gmail.com") {
+                document.getElementById('advSearchHiddenCheckbox').checked = false;
+            }
         });
 
         document.getElementById('authorizationBtn').addEventListener('click', () => {
@@ -915,7 +926,7 @@
             const excludeSelect = document.getElementById(isAdvanced ? 'advExcludeCategories' : 'excludeCategories');
             const includeCategories = Array.from(includeSelect.selectedOptions).map(opt => opt.textContent);
             const excludeCategories = Array.from(excludeSelect.selectedOptions).map(opt => opt.textContent);
-            const hiddenOnly = currentUserEmail === "psics.psix.141@gmail.com" && document.getElementById(isAdvanced ? 'advSearchHiddenCheckbox' : 'searchHiddenCheckbox').checked;
+            const includeHidden = isAdvanced && currentUserEmail === "psics.psix.141@gmail.com" && document.getElementById('advSearchHiddenCheckbox').checked;
             const searchAllPrompts = !isAdvanced && canSearchAllPrompts && document.getElementById('searchAllPromptsCheckbox').checked;
             const resultsList = document.getElementById(isAdvanced ? 'advSearchResults' : 'searchResults');
 
@@ -932,26 +943,27 @@
                     return;
                 }
 
-                const hasCriteria = input || promptText || promptFunction || promptLocation || promptNote || promptAuthor || includeCategories.length > 0 || excludeCategories.length > 0 || hiddenOnly;
+                const hasCriteria = input || promptText || promptFunction || promptLocation || promptNote || promptAuthor || includeCategories.length > 0 || excludeCategories.length > 0 || includeHidden;
 
                 const filteredPrompts = Object.entries(prompts)
                     .filter(([_, prompt]) => {
                         // Filtros de visibilidade
-                        if (prompt.hidden && prompt.userEmail === "psics.psix.141@gmail.com" && (!isAdvanced || !hiddenOnly)) return false;
+                        if (prompt.hidden && prompt.userEmail === "psics.psix.141@gmail.com" && !includeHidden) return false;
                         if (!isAdvanced && !searchAllPrompts && prompt.userEmail !== currentUserEmail) return false;
-                        if (isAdvanced && prompt.hidden && currentUserEmail !== "psics.psix.141@gmail.com" && !hiddenOnly) return false;
-                        if (hiddenOnly && (!prompt.hidden || prompt.userEmail !== "psics.psix.141@gmail.com")) return false;
+                        if (isAdvanced && prompt.hidden && currentUserEmail !== "psics.psix.141@gmail.com") return false;
 
                         // Se não houver critérios, não retorna nada até que o usuário especifique algo
                         if (!hasCriteria) return false;
 
-                        // Filtros de pesquisa geral (input principal)
+                        // Filtros de pesquisa geral (input principal) - ajustado para todos os campos
                         const generalMatch = !input || (
                             prompt.text.toLowerCase().includes(input) ||
                             prompt.function.toLowerCase().includes(input) ||
                             prompt.location.toLowerCase().includes(input) ||
                             (prompt.note && prompt.note.toLowerCase().includes(input)) ||
-                            prompt.author.toLowerCase().includes(input)
+                            prompt.author.toLowerCase().includes(input) ||
+                            (prompt.categories && prompt.categories.some(cat => cat.toLowerCase().includes(input))) ||
+                            prompt.userEmail.toLowerCase().includes(input)
                         );
 
                         // Filtros específicos (campos detalhados)
@@ -1056,7 +1068,11 @@
                 remove(promptRef)
                     .then(() => {
                         document.getElementById('success').textContent = "Prompt excluído com sucesso!";
-                        performSearch(isAdvanced);
+                        if (isAdvanced) {
+                            performSearch(true);
+                        } else {
+                            showRecentPrompts();
+                        }
                     })
                     .catch(error => log(`Erro ao excluir prompt: ${error.message}`));
             }
