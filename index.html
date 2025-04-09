@@ -189,7 +189,7 @@
             border-radius: 5px; 
             font-size: 20px; 
         }
-        #promptUserEmail, #editPromptUserEmail { 
+        #promptUserEmail, #editPromptUserEmail, #advSearchPromptUserEmail { 
             width: 16.665%; 
             background: #000; 
             color: #fff; 
@@ -199,7 +199,7 @@
             font-size: 20px; 
         }
         #promptAuthor::placeholder, #editPromptAuthor::placeholder, #searchPromptAuthor::placeholder, #advSearchPromptAuthor::placeholder,
-        #promptUserEmail::placeholder, #editPromptUserEmail::placeholder { 
+        #promptUserEmail::placeholder, #editPromptUserEmail::placeholder, #advSearchPromptUserEmail::placeholder { 
             font-size: 20px; 
             color: #888; 
         }
@@ -411,7 +411,10 @@
                             <label for="searchAllPromptsCheckbox">Pesquisar nos prompts de todos os usuários</label>
                         </div>
                     </div>
-                    <button id="doSearchBtn" class="search-btn-small">Pesquisar</button>
+                    <div class="checkbox-container">
+                        <button id="doSearchBtn" class="search-btn-small">Pesquisar</button>
+                        <button id="clearSearchBtn" class="search-btn-small">Limpar Campos</button>
+                    </div>
                 </div>
                 <button id="txtSearchBtn">TXT</button>
                 <textarea id="txtOutput" placeholder="Resultados da pesquisa aparecerão aqui"></textarea>
@@ -431,6 +434,7 @@
                         </div>
                         <div class="prompt-container">
                             <input type="text" id="advSearchPromptAuthor" placeholder="Nome do autor">
+                            <input type="text" id="advSearchPromptUserEmail" placeholder="E-mail do Usuário">
                             <div class="combo-box">
                                 <label>Incluir Categorias:</label>
                                 <select id="advIncludeCategories" multiple></select>
@@ -445,7 +449,10 @@
                             <label for="advSearchHiddenCheckbox">Incluir Ocultos</label>
                         </div>
                     </div>
-                    <button id="doAdvSearchBtn" class="search-btn-small">Pesquisar</button>
+                    <div class="checkbox-container">
+                        <button id="doAdvSearchBtn" class="search-btn-small">Pesquisar</button>
+                        <button id="clearAdvSearchBtn" class="search-btn-small">Limpar Campos</button>
+                    </div>
                 </div>
                 <button id="txtAdvSearchBtn">TXT</button>
                 <textarea id="txtOutputAdv" placeholder="Resultados da pesquisa avançada aparecerão aqui"></textarea>
@@ -535,7 +542,7 @@
                 }, { onlyOnce: true });
 
                 if (currentUserEmail === "psics.psix.141@gmail.com") {
-                    searchBtn.style.display = 'none'; // Remove Pesquisa Simples
+                    searchBtn.style.display = 'none';
                     advancedSearchBtn.style.display = 'inline-block';
                     authorizationBtn.style.display = 'inline-block';
                     document.getElementById('hiddenCheckboxContainer').style.display = 'flex';
@@ -720,7 +727,7 @@
         document.getElementById('storePromptBtn').addEventListener('click', () => {
             showScreen('storePromptScreen');
             loadCategories(document.getElementById('categorySelect'));
-            document.getElementById('promptUserEmail').value = currentUserEmail; // Preenche automaticamente
+            document.getElementById('promptUserEmail').value = currentUserEmail;
         });
 
         document.getElementById('savePromptBtn').addEventListener('click', () => {
@@ -977,6 +984,7 @@
             const promptLocation = document.getElementById(isAdvanced ? 'advSearchPromptLocation' : 'searchPromptLocation').value.trim().toLowerCase();
             const promptNote = document.getElementById(isAdvanced ? 'advSearchPromptNote' : 'searchPromptNote').value.trim().toLowerCase();
             const promptAuthor = document.getElementById(isAdvanced ? 'advSearchPromptAuthor' : 'searchPromptAuthor').value.trim().toLowerCase();
+            const promptUserEmail = isAdvanced ? document.getElementById('advSearchPromptUserEmail').value.trim().toLowerCase() : '';
             const includeSelect = document.getElementById(isAdvanced ? 'advIncludeCategories' : 'includeCategories');
             const excludeSelect = document.getElementById(isAdvanced ? 'advExcludeCategories' : 'excludeCategories');
             const includeCategories = Array.from(includeSelect.selectedOptions).map(opt => opt.textContent);
@@ -995,10 +1003,11 @@
                 resultsList.innerHTML = '';
                 if (!prompts) {
                     resultsList.innerHTML = '<li>Nenhum prompt encontrado.</li>';
+                    scrollToResults(isAdvanced);
                     return;
                 }
 
-                const hasCriteria = input || promptText || promptFunction || promptLocation || promptNote || promptAuthor || includeCategories.length > 0 || excludeCategories.length > 0;
+                const hasCriteria = input || promptText || promptFunction || promptLocation || promptNote || promptAuthor || (isAdvanced && promptUserEmail) || includeCategories.length > 0 || excludeCategories.length > 0;
 
                 const filteredPrompts = Object.entries(prompts)
                     .filter(([_, prompt]) => {
@@ -1027,7 +1036,8 @@
                             (!promptFunction || prompt.function.toLowerCase().includes(promptFunction)) &&
                             (!promptLocation || prompt.location.toLowerCase().includes(promptLocation)) &&
                             (!promptNote || (prompt.note && prompt.note.toLowerCase().includes(promptNote))) &&
-                            (!promptAuthor || prompt.author.toLowerCase().includes(promptAuthor))
+                            (!promptAuthor || prompt.author.toLowerCase().includes(promptAuthor)) &&
+                            (!promptUserEmail || prompt.userEmail.toLowerCase().includes(promptUserEmail))
                         );
 
                         const includeMatch = includeCategories.length === 0 || (Array.isArray(prompt.categories) && prompt.categories.some(cat => includeCategories.includes(cat)));
@@ -1097,7 +1107,33 @@
                 } else {
                     document.getElementById('success').textContent = "Resultados exibidos!";
                 }
+                scrollToResults(isAdvanced);
             }, { onlyOnce: true });
+        }
+
+        function scrollToResults(isAdvanced) {
+            const resultsList = document.getElementById(isAdvanced ? 'advSearchResults' : 'searchResults');
+            resultsList.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function clearSearchFields(isAdvanced = false) {
+            const prefix = isAdvanced ? 'adv' : '';
+            document.getElementById(`${prefix}SearchInput`).value = '';
+            document.getElementById(`${prefix}SearchPromptText`).value = '';
+            document.getElementById(`${prefix}SearchPromptFunction`).value = '';
+            document.getElementById(`${prefix}SearchPromptLocation`).value = '';
+            document.getElementById(`${prefix}SearchPromptNote`).value = '';
+            document.getElementById(`${prefix}SearchPromptAuthor`).value = '';
+            if (isAdvanced) document.getElementById('advSearchPromptUserEmail').value = '';
+            const includeSelect = document.getElementById(isAdvanced ? 'advIncludeCategories' : 'includeCategories');
+            const excludeSelect = document.getElementById(isAdvanced ? 'advExcludeCategories' : 'excludeCategories');
+            includeSelect.selectedIndex = -1;
+            excludeSelect.selectedIndex = -1;
+            if (!isAdvanced && canSearchAllPrompts) document.getElementById('searchAllPromptsCheckbox').checked = false;
+            if (isAdvanced && currentUserEmail === "psics.psix.141@gmail.com") document.getElementById('advSearchHiddenCheckbox').checked = false;
+            document.getElementById(isAdvanced ? 'advSearchResults' : 'searchResults').innerHTML = '';
+            document.getElementById(isAdvanced ? 'txtOutputAdv' : 'txtOutput').style.display = 'none';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function editPrompt(key) {
@@ -1190,6 +1226,9 @@
         document.getElementById('advSearchInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') performSearch(true);
         });
+
+        document.getElementById('clearSearchBtn').addEventListener('click', () => clearSearchFields(false));
+        document.getElementById('clearAdvSearchBtn').addEventListener('click', () => clearSearchFields(true));
 
         function exportSearchToTxt(isAdvanced = false) {
             const resultsList = document.getElementById(isAdvanced ? 'advSearchResults' : 'searchResults');
