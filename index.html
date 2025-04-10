@@ -180,8 +180,8 @@
             height: 50px; 
             width: 50%; 
         }
-        #promptAuthor, #editPromptAuthor, #searchPromptAuthor { 
-            width: 16.665%; 
+        #promptAuthor, #editPromptAuthor { 
+            width: 33.33%; 
             background: #000; 
             color: #fff; 
             padding: 10px; 
@@ -190,7 +190,16 @@
             font-size: 20px; 
         }
         #promptUserEmail, #editPromptUserEmail { 
-            width: 16.665%; 
+            width: 25%; 
+            background: #000; 
+            color: #fff; 
+            padding: 10px; 
+            border: 1px solid #555; 
+            border-radius: 5px; 
+            font-size: 20px; 
+        }
+        #searchPromptAuthor { 
+            width: 33.33%; 
             background: #000; 
             color: #fff; 
             padding: 10px; 
@@ -199,7 +208,7 @@
             font-size: 20px; 
         }
         #advSearchPromptAuthor, #advSearchPromptUserEmail { 
-            width: 66%; 
+            width: calc(66% + 50mm); 
             height: 100px; 
             background: #000; 
             color: #fff; 
@@ -208,6 +217,9 @@
             border-radius: 5px; 
             font-size: 20px; 
             box-sizing: border-box; 
+        }
+        #promptAuthor.admin, #editPromptAuthor.admin { 
+            width: 25%; 
         }
         #promptAuthor::placeholder, #editPromptAuthor::placeholder, #searchPromptAuthor::placeholder, 
         #promptUserEmail::placeholder, #editPromptUserEmail::placeholder, 
@@ -222,6 +234,9 @@
             border: 1px solid #555; 
             height: 100px; 
             width: 33.33%; 
+        }
+        #categorySelect.admin, #editCategorySelect.admin { 
+            width: 50%; 
         }
         #categoryName { 
             width: 33.33%; 
@@ -288,7 +303,7 @@
             display: flex; 
             flex-direction: column; 
             gap: 0px; 
-            width: 66%; 
+            width: calc(66% + 50mm); 
         }
         .checkbox-container { 
             display: flex; 
@@ -352,9 +367,9 @@
                         <textarea id="promptLocation" placeholder="Local em que foi utilizado (IA testada)"></textarea>
                         <textarea id="promptNote" placeholder="Digite as palavras-chaves"></textarea>
                     </div>
-                    <div class="prompt-container">
+                    <div class="prompt-container" id="storePromptContainer">
                         <input type="text" id="promptAuthor" placeholder="Nome do Autor">
-                        <input type="text" id="promptUserEmail" placeholder="E-mail do Usuário">
+                        <input type="text" id="promptUserEmail" placeholder="E-mail do Usuário" style="display: none;">
                         <select id="categorySelect" multiple></select>
                     </div>
                     <div class="checkbox-container">
@@ -568,6 +583,9 @@
                     document.getElementById('hiddenCheckboxContainer').style.display = 'flex';
                     document.getElementById('advSearchHiddenCheckboxContainer').style.display = 'flex';
                     document.getElementById('editHiddenCheckboxContainer').style.display = 'flex';
+                    document.getElementById('promptUserEmail').style.display = 'inline-block';
+                    document.getElementById('promptAuthor').classList.add('admin');
+                    document.getElementById('categorySelect').classList.add('admin');
                 } else {
                     searchBtn.style.display = 'inline-block';
                     advancedSearchBtn.style.display = 'none';
@@ -575,6 +593,9 @@
                     document.getElementById('hiddenCheckboxContainer').style.display = 'none';
                     document.getElementById('advSearchHiddenCheckboxContainer').style.display = 'none';
                     document.getElementById('editHiddenCheckboxContainer').style.display = 'none';
+                    document.getElementById('promptUserEmail').style.display = 'none';
+                    document.getElementById('promptAuthor').classList.remove('admin');
+                    document.getElementById('categorySelect').classList.remove('admin');
                 }
                 loginScreen.style.display = 'none';
                 appScreen.style.display = 'block';
@@ -1137,23 +1158,92 @@
         }
 
         function clearSearchFields(isAdvanced = false) {
-            const prefix = isAdvanced ? 'adv' : '';
-            document.getElementById(`${prefix}SearchInput`).value = '';
-            document.getElementById(`${prefix}SearchPromptText`).value = '';
-            document.getElementById(`${prefix}SearchPromptFunction`).value = '';
-            document.getElementById(`${prefix}SearchPromptLocation`).value = '';
-            document.getElementById(`${prefix}SearchPromptNote`).value = '';
-            document.getElementById(`${prefix}SearchPromptAuthor`).value = '';
-            if (isAdvanced) document.getElementById('advSearchPromptUserEmail').value = '';
-            const includeSelect = document.getElementById(isAdvanced ? 'advIncludeCategories' : 'includeCategories');
-            const excludeSelect = document.getElementById(isAdvanced ? 'advExcludeCategories' : 'excludeCategories');
-            includeSelect.selectedIndex = -1;
-            excludeSelect.selectedIndex = -1;
-            if (!isAdvanced && canSearchAllPrompts) document.getElementById('searchAllPromptsCheckbox').checked = false;
-            if (isAdvanced && currentUserEmail === "psics.psix.141@gmail.com") document.getElementById('advSearchHiddenCheckbox').checked = false;
-            document.getElementById(isAdvanced ? 'advSearchResults' : 'searchResults').innerHTML = '';
-            document.getElementById(isAdvanced ? 'txtOutputAdv' : 'txtOutput').style.display = 'none';
+            log(`Limpando campos da ${isAdvanced ? 'Pesquisa Avançada' : 'Pesquisa'} para ${currentUserEmail}`);
+            const prefix = isAdvanced ? 'advSearch' : 'search';
+
+            // Função auxiliar para limpar campo se ele existir
+            const clearValue = (id) => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.value = '';
+                    log(`Campo ${id} limpo`);
+                } else {
+                    log(`Campo ${id} não encontrado`);
+                }
+            };
+
+            // Função auxiliar para limpar seleções de combo box
+            const clearSelect = (id) => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.selectedIndex = -1;
+                    // Forçar desmarcação de todas as opções
+                    for (let option of element.options) {
+                        option.selected = false;
+                    }
+                    log(`Combo box ${id} limpo`);
+                } else {
+                    log(`Combo box ${id} não encontrado`);
+                }
+            };
+
+            // Limpar campos de texto com IDs corretos
+            clearValue(`${prefix}Input`);           // Pesquisa: searchInput, Avançada: advSearchInput
+            clearValue(`${prefix}PromptText`);      // Pesquisa: searchPromptText, Avançada: advSearchPromptText
+            clearValue(`${prefix}PromptFunction`);  // Pesquisa: searchPromptFunction, Avançada: advSearchPromptFunction
+            clearValue(`${prefix}PromptLocation`);  // Pesquisa: searchPromptLocation, Avançada: advSearchPromptLocation
+            clearValue(`${prefix}PromptNote`);      // Pesquisa: searchPromptNote, Avançada: advSearchPromptNote
+            clearValue(`${prefix}PromptAuthor`);    // Pesquisa: searchPromptAuthor, Avançada: advSearchPromptAuthor
+            if (isAdvanced) clearValue('advSearchPromptUserEmail'); // Apenas para Pesquisa Avançada
+
+            // Limpar seleções dos combo boxes
+            clearSelect(isAdvanced ? 'advIncludeCategories' : 'includeCategories');
+            clearSelect(isAdvanced ? 'advExcludeCategories' : 'excludeCategories');
+
+            // Limpar checkbox da Pesquisa, se aplicável
+            if (!isAdvanced && canSearchAllPrompts && currentUserEmail !== "psics.psix.141@gmail.com") {
+                const checkbox = document.getElementById('searchAllPromptsCheckbox');
+                if (checkbox) {
+                    checkbox.checked = false;
+                    log("Checkbox searchAllPromptsCheckbox limpo");
+                }
+            }
+
+            // Limpar checkbox da Pesquisa Avançada, se aplicável
+            if (isAdvanced && currentUserEmail === "psics.psix.141@gmail.com") {
+                const hiddenCheckbox = document.getElementById('advSearchHiddenCheckbox');
+                if (hiddenCheckbox) {
+                    hiddenCheckbox.checked = false;
+                    log("Checkbox advSearchHiddenCheckbox limpo");
+                }
+            }
+
+            // Limpar resultados e saída de texto
+            const results = document.getElementById(isAdvanced ? 'advSearchResults' : 'searchResults');
+            const txtOutput = document.getElementById(isAdvanced ? 'txtOutputAdv' : 'txtOutput');
+            if (results) {
+                results.innerHTML = '';
+                log(`Resultados ${isAdvanced ? 'advSearchResults' : 'searchResults'} limpos`);
+            }
+            if (txtOutput) {
+                txtOutput.style.display = 'none';
+                log(`Saída de texto ${isAdvanced ? 'txtOutputAdv' : 'txtOutput'} ocultada`);
+            }
+
+            // Exibir mensagem de sucesso
+            document.getElementById('success').textContent = "Campos limpos com sucesso!";
+
+            // Forçar rolagem para o topo
             window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            // Forçar atualização do DOM
+            const screen = document.getElementById(isAdvanced ? 'advancedSearchScreen' : 'searchScreen');
+            screen.style.display = 'none';
+            setTimeout(() => {
+                screen.style.display = 'block';
+            }, 0);
+
+            log("Campos limpos com sucesso");
         }
 
         function editPrompt(key) {
@@ -1247,8 +1337,14 @@
             if (e.key === 'Enter') performSearch(true);
         });
 
-        document.getElementById('clearSearchBtn').addEventListener('click', () => clearSearchFields(false));
-        document.getElementById('clearAdvSearchBtn').addEventListener('click', () => clearSearchFields(true));
+        document.getElementById('clearSearchBtn').addEventListener('click', () => {
+            log("Botão Limpar Campos da Pesquisa clicado");
+            clearSearchFields(false);
+        });
+        document.getElementById('clearAdvSearchBtn').addEventListener('click', () => {
+            log("Botão Limpar Campos da Pesquisa Avançada clicado");
+            clearSearchFields(true);
+        });
 
         function exportSearchToTxt(isAdvanced = false) {
             const resultsList = document.getElementById(isAdvanced ? 'advSearchResults' : 'searchResults');
