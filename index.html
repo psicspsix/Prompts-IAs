@@ -739,7 +739,7 @@
                     li.innerHTML = `
                         <div class="prompt-row">
                             <span>${prompt.text} | Autor: ${prompt.author} | Categorias: ${categoriesText}</span>
-                            <button class="copy-btn" data-text="${prompt.text}">Copiar</button>
+                            <button class="copy-btn">Copiar</button>
                             ${currentUserEmail === "psics.psix.141@gmail.com" ? `
                                 <button class="edit-btn" data-key="${key}">Editar</button>
                                 <button class="delete-btn" data-key="${key}">Excluir</button>
@@ -747,8 +747,8 @@
                         </div>
                     `;
                     promptList.appendChild(li);
-                    li.querySelector('.copy-btn').addEventListener('click', (e) => {
-                        navigator.clipboard.writeText(e.target.getAttribute('data-text'));
+                    li.querySelector('.copy-btn').addEventListener('click', () => {
+                        navigator.clipboard.writeText(prompt.text);
                         document.getElementById('success').textContent = "Prompt copiado para a área de transferência!";
                     });
                     if (currentUserEmail === "psics.psix.141@gmail.com") {
@@ -921,7 +921,8 @@
                 saveBtn.removeEventListener('click', saveCategoryDefault);
                 saveBtn.dataset.key = key;
                 saveBtn.addEventListener('click', editCategoryHandler);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                document.getElementById('categoryName').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                setTimeout(() => document.getElementById('categoryName').focus(), 300);
             }, { onlyOnce: true });
         }
 
@@ -1109,7 +1110,7 @@
                                     <span>E-mail: ${prompt.userEmail}</span>
                                     <span>Categorias: ${categoriesText}</span>
                                 </div>
-                                <button class="copy-btn" data-text="${prompt.text}">Copiar</button>
+                                <button class="copy-btn">Copiar</button>
                                 <button class="edit-btn" data-key="${key}">Editar</button>
                                 ${currentUserEmail === "psics.psix.141@gmail.com" ? `<button class="delete-btn" data-key="${key}">Excluir</button>` : ''}
                             </div>
@@ -1118,7 +1119,7 @@
                         li.innerHTML = `
                             <div class="prompt-row">
                                 <span>${prompt.text} | Autor: ${prompt.author}</span>
-                                <button class="copy-btn" data-text="${prompt.text}">Copiar</button>
+                                <button class="copy-btn">Copiar</button>
                                 ${currentUserEmail === "psics.psix.141@gmail.com" ? `
                                     <button class="edit-btn" data-key="${key}">Editar</button>
                                     <button class="delete-btn" data-key="${key}">Excluir</button>
@@ -1127,8 +1128,8 @@
                         `;
                     }
                     resultsList.appendChild(li);
-                    li.querySelector('.copy-btn').addEventListener('click', (e) => {
-                        navigator.clipboard.writeText(e.target.getAttribute('data-text'));
+                    li.querySelector('.copy-btn').addEventListener('click', () => {
+                        navigator.clipboard.writeText(prompt.text);
                         document.getElementById('success').textContent = "Prompt copiado para a área de transferência!";
                     });
                     if (currentUserEmail === "psics.psix.141@gmail.com") {
