@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prompts para IAs</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            background: #1a1a1a; 
+            color: #e0e0e0; 
+            overflow-x: hidden; 
+        }
+        #loginScreen, #appScreen { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            box-sizing: border-box; 
+        }
+        #loginScreen { 
+            background: url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1470&auto=format&fit=crop') no-repeat center center fixed; 
+            background-size: cover; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            flex-direction: column;
+        }
+        #appScreen { 
+            display: none; 
+            padding: 20px; 
+            overflow-y: auto; 
+            overflow-x: hidden; 
+        }
+        .login-container, .register-container { 
+            background: rgba(0, 0, 0, 0.8); 
+            padding: 20px; 
+            border-radius: 10px; 
+            text-align: center; 
+        }
+        .login-container input, .register-container input { 
+            width: 100%; 
+            max-width: 300px; 
+            font-size: 18px; 
+            padding: 10px; 
+            margin: 10px 0; 
+            background: #333; 
+            color: #e0e0e0; 
+            border: 1px solid #555; 
+            border-radius: 5px; 
+        }
+        .login-container button, .register-container button { 
+            font-size: 18px; 
+            padding: 10px 20px; 
+            margin: 5px; 
+            background: #333; 
+            color: #e0e0e0; 
+            border: 1px solid #555; 
+            border-radius: 5px; 
+            cursor: pointer; 
+        }
+        .login-container button:hover, .register-container button:hover { 
+            background: #555; 
+        }
+        #registerContainer { 
+            display: none; 
+            margin-top: 20px; 
+        }
+        #message { 
+            color: #ff5555; 
+            margin-top: 10px; 
+        }
+        .header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            flex-wrap: wrap; 
+            max-width: 100%; 
+            margin-bottom: 60px; 
+        }
+        h1 { 
+            margin: 0; 
+            color: #ffffff; 
+        }
+        .menu { 
+            display: flex; 
+            gap: 10px; 
+            align-items: center; 
+            flex-wrap: wrap; 
+        }
+        button { 
+            font-size: 18px; 
+            padding: 10px; 
+            margin: 5px; 
+            background: #333; 
+            color: #e0e0e0; 
+            border: 1px solid #555; 
+            cursor: pointer; 
+        }
+        button:hover { 
+            background: #555; 
+        }
+        button.active { 
+            background: #555; 
+            font-weight: bold; 
+        }
+        .small-btn { 
+            font-size: 14px; 
+            padding: 5px; 
+            width: 30px; 
+            height: 30px; 
+            line-height: 20px; 
+            text-align: center; 
+        }
+        ul { 
+            list-style-type: none; 
+            padding: 0; 
+        }
+        li { 
+            font-size: 18px; 
+            margin: 10px 0; 
+            background: #2a2a2a; 
+            padding: 10px; 
+            border-radius: 5px; 
+        }
+        .prompt-row { 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+        }
+        .adv-prompt-details { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 5px; 
+        }
+        textarea { 
+            width: 100%; 
+            background: #444; 
+            color: #e0e0e0; 
+            border: 1px solid #555; 
+            padding: 5px; 
+            box-sizing: border-box; 
+            font-size: 20px; 
+        }
+        textarea::placeholder { 
+            font-size: 20px; 
+            color: #888; 
+        }
+        #error, #success { 
+            text-align: center; 
+        }
+        #error { 
+            color: #ff5555; 
+        }
+        #success { 
+            color: #55ff55; 
+        }
+        .input-row { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 10px; 
+            align-items: flex-start; 
+        }
+        #promptText, #editPromptText { 
+            height: 150px; 
+        }
+        #promptFunction, #editPromptFunction { 
+            height: 100px; 
+        }
+        .location-note-container { 
+            display: flex; 
+            flex-direction: row; 
+            gap: 10px; 
+            width: 100%; 
+        }
+        #promptLocation, #editPromptLocation, #promptNote, #editPromptNote { 
+            height: 50px; 
+            width: 50%; 
+        }
+        #promptAuthor, #editPromptAuthor { 
+            width: 33.33%; 
+            background: #000; 
+            color: #fff; 
+            padding: 10px; 
+            border: 1px solid #555; 
+            border-radius: 5px; 
+            font-size: 20px; 
+        }
+        #promptUserEmail, #editPromptUserEmail { 
+            width: 25%; 
+            background: #000; 
+            color: #fff; 
+            padding: 10px; 
+            border: 1px solid #555; 
+            border-radius: 5px; 
+            font-size: 20px; 
+        }
+        #searchPromptAuthor { 
+            width: 33.33%; 
+            background: #000; 
+            color: #fff; 
+            padding: 10px; 
+            border: 1px solid #555; 
+            border-radius: 5px; 
+            font-size: 20px; 
+        }
+        #advSearchPromptAuthor, #advSearchPromptUserEmail { 
+            width: calc(66% + 50mm); 
+            height: 100px; 
+            background: #000; 
+            color: #fff; 
+            padding: 10px; 
+            border: 1px solid #555; 
+            border-radius: 5px; 
+            font-size: 20px; 
+            box-sizing: border-box; 
+        }
+        #promptAuthor.admin, #editPromptAuthor.admin { 
+            width: 25%; 
+        }
+        #promptAuthor::placeholder, #editPromptAuthor::placeholder, #searchPromptAuthor::placeholder, 
+        #promptUserEmail::placeholder, #editPromptUserEmail::placeholder, 
+        #advSearchPromptAuthor::placeholder, #advSearchPromptUserEmail::placeholder { 
+            font-size: 20px; 
+            color: #888; 
+        }
+        #categorySelect, #editCategorySelect { 
+            padding: 10px; 
+            background: #333; 
+            color: #e0e0e0; 
+            border: 1px solid #555; 
+            height: 100px; 
+            width: 33.33%; 
+        }
+        #categorySelect.admin, #editCategorySelect.admin { 
+            width: 50%; 
+        }
+        #categoryName { 
+            width: 33.33%; 
+            background: #000; 
+            color: #fff; 
+            padding: 10px; 
+            border: 1px solid #555; 
+            border-radius: 5px; 
+            font-size: 20px; 
+        }
+        #categoryName::placeholder { 
+            font-size: 20px; 
+            color: #888; 
+        }
+        #txtOutput, #txtOutputAdv { 
+            display: none; 
+            margin: 10px 0; 
+            padding: 10px; 
+            background: #333; 
+            border-radius: 5px; 
+            width: 100%; 
+            min-height: 100px; 
+            resize: vertical; 
+        }
+        .search-container { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 10px; 
+            width: 100%; 
+            box-sizing: border-box; 
+        }
+        .combo-box { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: flex-start; 
+            width: 33%; 
+        }
+        .combo-box select { 
+            height: 200px; 
+            background: #000; 
+            color: #fff; 
+            border: 1px solid #555; 
+            width: 100%; 
+        }
+        #searchInput, #advSearchInput { 
+            width: 100%; 
+            font-size: 18px; 
+            padding: 10px; 
+            background: #000; 
+            color: #fff; 
+            border: 1px solid #555; 
+            border-radius: 5px; 
+            box-sizing: border-box; 
+            margin-bottom: 10px; 
+        }
+        .prompt-container { 
+            display: flex; 
+            flex-direction: row; 
+            gap: 10px; 
+            width: 100%; 
+            justify-content: flex-start; 
+        }
+        .adv-search-author-container { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 0px; 
+            width: calc(66% + 50mm); 
+        }
+        .checkbox-container { 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+        }
+        #hiddenCheckbox, #advSearchHiddenCheckbox, #editHiddenCheckbox, #searchAllPromptsCheckbox { 
+            width: 20px; 
+            height: 20px; 
+        }
+        .category-list, .user-list { 
+            margin-top: 50px; 
+        }
+        .search-btn-small { 
+            padding: 5px 10px; 
+            font-size: 16px; 
+            width: auto; 
+            align-self: flex-start; 
+        }
+    </style>
+</head>
+<body>
+    <div id="loginScreen">
+        <div class="login-container">
+            <h2>Prompts para IAs</h2>
+            <input type="text" id="userInput" placeholder="Usuário (e-mail)">
+            <input type="password" id="passwordInput" placeholder="Senha">
+            <button id="loginBtn">Entrar</button>
+            <button id="registerBtn">Cadastrar</button>
+            <button id="recoverBtn">Recuperar Senha</button>
+            <div id="message"></div>
+            <div id="registerContainer" class="register-container">
+                <input type="text" id="newUserInput" placeholder="Novo Usuário (e-mail)">
+                <input type="password" id="newPasswordInput" placeholder="Nova Senha">
+                <button id="submitRegisterBtn">Cadastrar</button>
+            </div>
+        </div>
+    </div>
+    <div id="appScreen">
+        <div class="header">
+            <h1>Prompts para IAs</h1>
+            <div class="menu">
+                <button id="storePromptBtn">Cadastro de Prompt</button>
+                <button id="categoryBtn">Cadastro de Categoria</button>
+                <button id="searchBtn">Pesquisa</button>
+                <button id="advancedSearchBtn" style="display: none;">Pesquisa Avançada</button>
+                <button id="authorizationBtn" style="display: none;">Autorizações</button>
+            </div>
+        </div>
+        <div id="mainContent">
+            <div id="recentPrompts">
+                <h2>Últimos Prompts Armazenados</h2>
+                <ul id="promptList"></ul>
+                <button id="backBtn" style="display: none;">Voltar</button>
+            </div>
+            <div id="storePromptScreen" style="display: none;">
+                <div class="input-row">
+                    <textarea id="promptText" placeholder="Digite o texto do prompt"></textarea>
+                    <textarea id="promptFunction" placeholder="Descreva a função do prompt"></textarea>
+                    <div class="location-note-container">
+                        <textarea id="promptLocation" placeholder="Local em que foi utilizado (IA testada)"></textarea>
+                        <textarea id="promptNote" placeholder="Digite as palavras-chaves"></textarea>
+                    </div>
+                    <div class="prompt-container" id="storePromptContainer">
+                        <input type="text" id="promptAuthor" placeholder="Nome do Autor">
+                        <input type="text" id="promptUserEmail" placeholder="E-mail do Usuário" style="display: none;">
+                        <select id="categorySelect" multiple></select>
+                    </div>
+                    <div class="checkbox-container">
+                        <button id="savePromptBtn">Salvar Prompt</button>
+                        <div id="hiddenCheckboxContainer" style="display: none;">
+                            <input type="checkbox" id="hiddenCheckbox">
+                            <label for="hiddenCheckbox">Oculto</label>
+                        </div>
+                    </div>
+                </div>
+                <button id="backBtnStore">Voltar</button>
+            </div>
+            <div id="editPromptScreen" style="display: none;">
+                <div class="input-row">
+                    <textarea id="editPromptText" placeholder="Digite o texto do prompt"></textarea>
+                    <textarea id="editPromptFunction" placeholder="Descreva a função do prompt"></textarea>
+                    <div class="location-note-container">
+                        <textarea id="editPromptLocation" placeholder="Local em que foi utilizado (IA testada)"></textarea>
+                        <textarea id="editPromptNote" placeholder="Digite as palavras-chaves"></textarea>
+                    </div>
+                    <div class="prompt-container">
+                        <input type="text" id="editPromptAuthor" placeholder="Nome do Autor">
+                        <input type="text" id="editPromptUserEmail" placeholder="E-mail do Usuário">
+                        <select id="editCategorySelect" multiple></select>
+                    </div>
+                    <div class="checkbox-container">
+                        <button id="saveEditPromptBtn">Salvar Alterações</button>
+                        <div id="editHiddenCheckboxContainer" style="display: none;">
+                            <input type="checkbox" id="editHiddenCheckbox">
+                            <label for="editHiddenCheckbox">Oculto</label>
+                        </div>
+                    </div>
+                </div>
+                <button id="backBtnEdit">Voltar</button>
+            </div>
+            <div id="categoryScreen" style="display: none;">
+                <div class="input-row">
+                    <input type="text" id="categoryName" placeholder="Nome da Categoria">
+                    <textarea id="categoryDesc" placeholder="Breve descrição da categoria"></textarea>
+                    <button id="saveCategoryBtn">Cadastrar Categoria</button>
+                </div>
+                <button id="backBtnCategory">Voltar</button>
+                <div class="category-list">
+                    <h3>Categorias já cadastradas</h3>
+                    <ul id="categoryList"></ul>
+                </div>
+            </div>
+            <div id="searchScreen" style="display: none;">
+                <div class="search-container">
+                    <input type="text" id="searchInput" placeholder="Digite o texto para pesquisa">
+                    <button id="doSearchBtnTop" class="search-btn-small">Pesquisar</button>
+                    <div class="input-row">
+                        <textarea id="searchPromptText" placeholder="Digite o texto do prompt"></textarea>
+                        <textarea id="searchPromptFunction" placeholder="Descreva a função do prompt"></textarea>
+                        <div class="location-note-container">
+                            <textarea id="searchPromptLocation" placeholder="Local em que foi utilizado (IA testada)"></textarea>
+                            <textarea id="searchPromptNote" placeholder="Digite as palavras-chaves"></textarea>
+                        </div>
+                        <div class="prompt-container">
+                            <input type="text" id="searchPromptAuthor" placeholder="Nome do Autor">
+                            <div class="combo-box">
+                                <label>Incluir Categorias:</label>
+                                <select id="includeCategories" multiple></select>
+                            </div>
+                            <div class="combo-box">
+                                <label>Excluir Categorias:</label>
+                                <select id="excludeCategories" multiple></select>
+                            </div>
+                        </div>
+                        <div id="searchAllPromptsCheckboxContainer" class="checkbox-container" style="display: none;">
+                            <input type="checkbox" id="searchAllPromptsCheckbox">
+                            <label for="searchAllPromptsCheckbox">Pesquisar nos prompts de todos os usuários</label>
+                        </div>
+                    </div>
+                    <div class="checkbox-container">
+                        <button id="doSearchBtn" class="search-btn-small">Pesquisar</button>
+                        <button id="clearSearchBtn" class="search-btn-small">Limpar Campos</button>
+                    </div>
+                </div>
+                <button id="txtSearchBtn">TXT</button>
+                <textarea id="txtOutput" placeholder="Resultados da pesquisa aparecerão aqui"></textarea>
+                <ul id="searchResults"></ul>
+                <button id="backBtnSearch">Voltar</button>
+            </div>
+            <div id="advancedSearchScreen" style="display: none;">
+                <div class="search-container">
+                    <input type="text" id="advSearchInput" placeholder="Digite o texto para pesquisa avançada">
+                    <button id="doAdvSearchBtnTop" class="search-btn-small">Pesquisar</button>
+                    <div class="input-row">
+                        <textarea id="advSearchPromptText" placeholder="Digite o texto do prompt"></textarea>
+                        <textarea id="advSearchPromptFunction" placeholder="Descreva a função do prompt"></textarea>
+                        <div class="location-note-container">
+                            <textarea id="advSearchPromptLocation" placeholder="Local em que foi utilizado (IA testada)"></textarea>
+                            <textarea id="advSearchPromptNote" placeholder="Digite as palavras-chaves"></textarea>
+                        </div>
+                        <div class="prompt-container">
+                            <div class="adv-search-author-container">
+                                <input type="text" id="advSearchPromptAuthor" placeholder="Nome do Autor">
+                                <input type="text" id="advSearchPromptUserEmail" placeholder="E-mail do Usuário">
+                            </div>
+                            <div class="combo-box">
+                                <label>Incluir Categorias:</label>
+                                <select id="advIncludeCategories" multiple></select>
+                            </div>
+                            <div class="combo-box">
+                                <label>Excluir Categorias:</label>
+                                <select id="advExcludeCategories" multiple></select>
+                            </div>
+                        </div>
+                        <div id="advSearchHiddenCheckboxContainer" class="checkbox-container" style="display: none;">
+                            <input type="checkbox" id="advSearchHiddenCheckbox">
+                            <label for="advSearchHiddenCheckbox">Incluir Ocultos</label>
+                        </div>
+                    </div>
+                    <div class="checkbox-container">
+                        <button id="doAdvSearchBtn" class="search-btn-small">Pesquisar</button>
+                        <button id="clearAdvSearchBtn" class="search-btn-small">Limpar Campos</button>
+                    </div>
+                </div>
+                <button id="txtAdvSearchBtn">TXT</button>
+                <textarea id="txtOutputAdv" placeholder="Resultados da pesquisa avançada aparecerão aqui"></textarea>
+                <ul id="advSearchResults"></ul>
+                <button id="backBtnAdvSearch">Voltar</button>
+            </div>
+            <div id="authorizationScreen" style="display: none;">
+                <h2>Autorizações</h2>
+                <div class="user-list">
+                    <h3>Usuários Cadastrados</h3>
+                    <ul id="userList"></ul>
+                </div>
+                <button id="backBtnAuthorization">Voltar</button>
+            </div>
+        </div>
+        <div id="error"></div>
+        <div id="success"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, onValue, push, update, set, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDZ8rtMXtSztcePnSh6sSe9yl3wyJ9GaNs",
+            authDomain: "gerenciador-de-prompts-de-ias.firebaseapp.com",
+            projectId: "gerenciador-de-prompts-de-ias",
+            storageBucket: "gerenciador-de-prompts-de-ias.firebasestorage.app",
+            messagingSenderId: "902314577084",
+            appId: "1:902314577084:web:a97afc0081d83b048894b9",
+            measurementId: "G-5C0RJFG1GH"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+        const promptsRef = ref(db, 'prompts');
+        const categoriesRef = ref(db, 'categories');
+        const usersRef = ref(db, 'users');
+        let currentUserEmail = null;
+        let editingPromptKey = null;
+        let canSearchAllPrompts = false;
+
+        function log(message) {
+            console.log(`[LOG ${new Date().toLocaleTimeString()}]: ${message}`);
+        }
+
+        log("Firebase conectado com sucesso!");
+
+        // Tela de Login e Autenticação
+        const loginScreen = document.getElementById('loginScreen');
+        const appScreen = document.getElementById('appScreen');
+        const loginBtn = document.getElementById('loginBtn');
+        const registerBtn = document.getElementById('registerBtn');
+        const recoverBtn = document.getElementById('recoverBtn');
+        const registerContainer = document.getElementById('registerContainer');
+        const submitRegisterBtn = document.getElementById('submitRegisterBtn');
+        const userInput = document.getElementById('userInput');
+        const passwordInput = document.getElementById('passwordInput');
+        const newUserInput = document.getElementById('newUserInput');
+        const newPasswordInput = document.getElementById('newPasswordInput');
+        const messageDiv = document.getElementById('message');
+        const searchBtn = document.getElementById('searchBtn');
+        const advancedSearchBtn = document.getElementById('advancedSearchBtn');
+        const authorizationBtn = document.getElementById('authorizationBtn');
+
+        signOut(auth).then(() => {
+            log("Logout inicial realizado para garantir tela de login");
+            loginScreen.style.display = 'flex';
+            appScreen.style.display = 'none';
+        });
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUserEmail = user.email;
+                log(`Usuário autenticado: ${currentUserEmail}`);
+                const userRef = ref(db, `users/${user.uid}`);
+                onValue(userRef, (snapshot) => {
+                    const userData = snapshot.val();
+                    canSearchAllPrompts = userData?.canSearchAllPrompts || false;
+                    if (canSearchAllPrompts && currentUserEmail !== "psics.psix.141@gmail.com") {
+                        document.getElementById('searchAllPromptsCheckboxContainer').style.display = 'flex';
+                    } else {
+                        document.getElementById('searchAllPromptsCheckboxContainer').style.display = 'none';
+                    }
+                }, { onlyOnce: true });
+
+                if (currentUserEmail === "psics.psix.141@gmail.com") {
+                    searchBtn.style.display = 'none';
+                    advancedSearchBtn.style.display = 'inline-block';
+                    authorizationBtn.style.display = 'inline-block';
+                    document.getElementById('hiddenCheckboxContainer').style.display = 'flex';
+                    document.getElementById('advSearchHiddenCheckboxContainer').style.display = 'flex';
+                    document.getElementById('editHiddenCheckboxContainer').style.display = 'flex';
+                    document.getElementById('promptUserEmail').style.display = 'inline-block';
+                    document.getElementById('promptAuthor').classList.add('admin');
+                    document.getElementById('categorySelect').classList.add('admin');
+                } else {
+                    searchBtn.style.display = 'inline-block';
+                    advancedSearchBtn.style.display = 'none';
+                    authorizationBtn.style.display = 'none';
+                    document.getElementById('hiddenCheckboxContainer').style.display = 'none';
+                    document.getElementById('advSearchHiddenCheckboxContainer').style.display = 'none';
+                    document.getElementById('editHiddenCheckboxContainer').style.display = 'none';
+                    document.getElementById('promptUserEmail').style.display = 'none';
+                    document.getElementById('promptAuthor').classList.remove('admin');
+                    document.getElementById('categorySelect').classList.remove('admin');
+                }
+                loginScreen.style.display = 'none';
+                appScreen.style.display = 'block';
+                showRecentPrompts();
+            } else {
+                currentUserEmail = null;
+                canSearchAllPrompts = false;
+                loginScreen.style.display = 'flex';
+                appScreen.style.display = 'none';
+                searchBtn.style.display = 'inline-block';
+                advancedSearchBtn.style.display = 'none';
+                authorizationBtn.style.display = 'none';
+            }
+        });
+
+        loginBtn.addEventListener('click', loginUser);
+        passwordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') loginUser();
+        });
+
+        function loginUser() {
+            const email = userInput.value.trim();
+            const password = passwordInput.value.trim();
+            if (!email || !password) {
+                messageDiv.textContent = "Preencha todos os campos!";
+                return;
+            }
+            signInWithEmailAndPassword(auth, email, password)
+                .then(() => log("Login bem-sucedido"))
+                .catch((error) => {
+                    if (error.code === 'auth/user-not-found') {
+                        messageDiv.textContent = "Favor cadastrar-se primeiro clicando no botão abaixo!";
+                    } else if (error.code === 'auth/wrong-password') {
+                        messageDiv.textContent = "Senha incorreta, favor tentar novamente!";
+                    } else {
+                        messageDiv.textContent = "Erro ao entrar: " + error.message;
+                    }
+                    log(`Erro ao fazer login: ${error.message}`);
+                });
+        }
+
+        registerBtn.addEventListener('click', () => {
+            registerContainer.style.display = 'block';
+            messageDiv.textContent = '';
+        });
+
+        submitRegisterBtn.addEventListener('click', () => {
+            const newEmail = newUserInput.value.trim();
+            const newPassword = newPasswordInput.value.trim();
+            if (!newEmail || !newPassword) {
+                messageDiv.textContent = "Preencha todos os campos!";
+                return;
+            }
+            createUserWithEmailAndPassword(auth, newEmail, newPassword)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+                    set(ref(db, `users/${user.uid}`), {
+                        email: newEmail,
+                        password: newPassword,
+                        canSearchAllPrompts: false
+                    }).then(() => {
+                        messageDiv.textContent = "Usuário cadastrado com sucesso!";
+                        registerContainer.style.display = 'none';
+                        newUserInput.value = '';
+                        newPasswordInput.value = '';
+                    });
+                })
+                .catch((error) => {
+                    messageDiv.textContent = "Erro ao cadastrar: " + error.message;
+                    log(`Erro ao cadastrar usuário: ${error.message}`);
+                });
+        });
+
+        recoverBtn.addEventListener('click', () => {
+            const email = userInput.value.trim();
+            if (!email) {
+                messageDiv.textContent = "Digite seu e-mail para recuperação!";
+                return;
+            }
+            sendPasswordResetEmail(auth, email)
+                .then(() => {
+                    messageDiv.textContent = "E-mail de recuperação enviado com sucesso!";
+                })
+                .catch((error) => {
+                    messageDiv.textContent = "Erro ao enviar e-mail de recuperação: " + error.message;
+                    log(`Erro ao enviar e-mail de recuperação: ${error.message}`);
+                });
+        });
+
+        // Funções do Aplicativo
+        function showScreen(screenId) {
+            document.querySelectorAll('#mainContent > div').forEach(div => div.style.display = 'none');
+            document.getElementById(screenId).style.display = 'block';
+            document.getElementById('error').textContent = '';
+            document.getElementById('success').textContent = '';
+        }
+
+        function loadCategories(selectElement, selectedCategories = []) {
+            onValue(categoriesRef, (snapshot) => {
+                const categories = snapshot.val();
+                selectElement.innerHTML = '';
+                if (categories) {
+                    const sortedCategories = Object.entries(categories).sort((a, b) => a[1].name.localeCompare(b[1].name));
+                    sortedCategories.forEach(([key, category]) => {
+                        const option = document.createElement('option');
+                        option.value = key;
+                        option.textContent = category.name;
+                        if (selectedCategories.includes(category.name)) {
+                            option.selected = true;
+                        }
+                        selectElement.appendChild(option);
+                    });
+                }
+            }, { onlyOnce: true });
+        }
+
+        function showRecentPrompts() {
+            showScreen('recentPrompts');
+            onValue(promptsRef, (snapshot) => {
+                const prompts = snapshot.val();
+                const promptList = document.getElementById('promptList');
+                promptList.innerHTML = '';
+                if (!prompts) {
+                    promptList.innerHTML = '<li>Nenhum prompt armazenado ainda.</li>';
+                    return;
+                }
+                let userPrompts;
+                if (currentUserEmail === "psics.psix.141@gmail.com") {
+                    userPrompts = Object.entries(prompts)
+                        .sort((a, b) => b[1].timestamp - a[1].timestamp)
+                        .slice(0, 10);
+                } else {
+                    userPrompts = Object.entries(prompts)
+                        .filter(([_, prompt]) => prompt.userEmail === currentUserEmail)
+                        .sort((a, b) => b[1].timestamp - a[1].timestamp)
+                        .slice(0, 10);
+                }
+                userPrompts.forEach(([key, prompt]) => {
+                    const categoriesText = Array.isArray(prompt.categories) ? prompt.categories.join(', ') : 'Sem categorias';
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <div class="prompt-row">
+                            <span>${prompt.text} | Autor: ${prompt.author} | Categorias: ${categoriesText}</span>
+                            <button class="copy-btn" data-text="${prompt.text}">Copiar</button>
+                            ${currentUserEmail === "psics.psix.141@gmail.com" ? `
+                                <button class="edit-btn" data-key="${key}">Editar</button>
+                                <button class="delete-btn" data-key="${key}">Excluir</button>
+                            ` : ''}
+                        </div>
+                    `;
+                    promptList.appendChild(li);
+                    li.querySelector('.copy-btn').addEventListener('click', (e) => {
+                        navigator.clipboard.writeText(e.target.getAttribute('data-text'));
+                        document.getElementById('success').textContent = "Prompt copiado para a área de transferência!";
+                    });
+                    if (currentUserEmail === "psics.psix.141@gmail.com") {
+                        li.querySelector('.edit-btn').addEventListener('click', (e) => {
+                            const key = e.target.getAttribute('data-key');
+                            editPrompt(key);
+                        });
+                        li.querySelector('.delete-btn').addEventListener('click', (e) => {
+                            const key = e.target.getAttribute('data-key');
+                            deletePrompt(key, false);
+                        });
+                    }
+                });
+            }, { onlyOnce: true });
+        }
+
+        document.getElementById('storePromptBtn').addEventListener('click', () => {
+            showScreen('storePromptScreen');
+            loadCategories(document.getElementById('categorySelect'));
+            document.getElementById('promptUserEmail').value = currentUserEmail;
+        });
+
+        document.getElementById('savePromptBtn').addEventListener('click', () => {
+            const text = document.getElementById('promptText').value.trim();
+            const func = document.getElementById('promptFunction').value.trim();
+            const location = document.getElementById('promptLocation').value.trim();
+            const note = document.getElementById('promptNote').value.trim();
+            let author = document.getElementById('promptAuthor').value.trim();
+            const userEmail = document.getElementById('promptUserEmail').value.trim();
+            const categorySelect = document.getElementById('categorySelect');
+            const categories = Array.from(categorySelect.selectedOptions).map(option => option.textContent) || [];
+            const hidden = currentUserEmail === "psics.psix.141@gmail.com" && document.getElementById('hiddenCheckbox').checked;
+
+            if (!text || !func) {
+                document.getElementById('error').textContent = "Preencha os campos obrigatórios: Texto do Prompt e Função!";
+                return;
+            }
+
+            if (!author) {
+                author = currentUserEmail;
+            }
+
+            const newPrompt = {
+                text,
+                function: func,
+                location,
+                note,
+                author,
+                userEmail: userEmail || currentUserEmail,
+                categories: categories.length > 0 ? categories : [],
+                timestamp: Date.now(),
+                hidden: hidden || false
+            };
+
+            push(promptsRef, newPrompt)
+                .then(() => {
+                    document.getElementById('success').textContent = "Prompt armazenado com sucesso!";
+                    document.getElementById('promptText').value = '';
+                    document.getElementById('promptFunction').value = '';
+                    document.getElementById('promptLocation').value = '';
+                    document.getElementById('promptNote').value = '';
+                    document.getElementById('promptAuthor').value = '';
+                    document.getElementById('promptUserEmail').value = currentUserEmail;
+                    categorySelect.selectedIndex = -1;
+                    if (hidden) document.getElementById('hiddenCheckbox').checked = false;
+                })
+                .catch(error => log(`Erro ao armazenar prompt: ${error.message}`));
+        });
+
+        document.getElementById('categoryBtn').addEventListener('click', () => {
+            showScreen('categoryScreen');
+            loadCategoryList();
+            const saveBtn = document.getElementById('saveCategoryBtn');
+            saveBtn.textContent = "Cadastrar Categoria";
+            saveBtn.removeEventListener('click', editCategoryHandler);
+            saveBtn.addEventListener('click', saveCategoryDefault);
+        });
+
+        function saveCategoryDefault() {
+            const name = document.getElementById('categoryName').value.trim();
+            const desc = document.getElementById('categoryDesc').value.trim();
+            if (!name || !desc) {
+                document.getElementById('error').textContent = "Preencha todos os campos!";
+                return;
+            }
+            push(categoriesRef, { name, description: desc })
+                .then(() => {
+                    document.getElementById('success').textContent = "Categoria cadastrada com sucesso!";
+                    document.getElementById('categoryName').value = '';
+                    document.getElementById('categoryDesc').value = '';
+                    loadCategoryList();
+                })
+                .catch(error => log(`Erro ao cadastrar categoria: ${error.message}`));
+        }
+
+        function editCategoryHandler() {
+            const name = document.getElementById('categoryName').value.trim();
+            const desc = document.getElementById('categoryDesc').value.trim();
+            const key = this.dataset.key;
+            if (!name || !desc) {
+                document.getElementById('error').textContent = "Preencha todos os campos!";
+                return;
+            }
+            set(ref(db, `categories/${key}`), { name, description: desc })
+                .then(() => {
+                    document.getElementById('success').textContent = "Categoria alterada com sucesso!";
+                    document.getElementById('categoryName').value = '';
+                    document.getElementById('categoryDesc').value = '';
+                    const saveBtn = document.getElementById('saveCategoryBtn');
+                    saveBtn.textContent = "Cadastrar Categoria";
+                    saveBtn.removeEventListener('click', editCategoryHandler);
+                    saveBtn.addEventListener('click', saveCategoryDefault);
+                    loadCategoryList();
+                })
+                .catch(error => log(`Erro ao alterar categoria: ${error.message}`));
+        }
+
+        document.getElementById('categoryName').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') document.getElementById('saveCategoryBtn').click();
+        });
+
+        document.getElementById('categoryDesc').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') document.getElementById('saveCategoryBtn').click();
+        });
+
+        function loadCategoryList() {
+            const categoryList = document.getElementById('categoryList');
+            onValue(categoriesRef, (snapshot) => {
+                const categories = snapshot.val();
+                categoryList.innerHTML = '';
+                if (!categories) {
+                    categoryList.innerHTML = '<li>Nenhuma categoria cadastrada.</li>';
+                    return;
+                }
+                const sortedCategories = Object.entries(categories).sort((a, b) => a[1].name.localeCompare(b[1].name));
+                sortedCategories.forEach(([key, category]) => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <div class="prompt-row">
+                            <span>${category.name} | ${category.description}</span>
+                            ${currentUserEmail === "psics.psix.141@gmail.com" ? `
+                                <button class="edit-category-btn" data-key="${key}">Alterar</button>
+                                <button class="delete-category-btn" data-key="${key}">Excluir</button>
+                            ` : ''}
+                        </div>
+                    `;
+                    categoryList.appendChild(li);
+                    if (currentUserEmail === "psics.psix.141@gmail.com") {
+                        li.querySelector('.edit-category-btn').addEventListener('click', (e) => {
+                            const key = e.target.getAttribute('data-key');
+                            editCategory(key);
+                        });
+                        li.querySelector('.delete-category-btn').addEventListener('click', (e) => {
+                            const key = e.target.getAttribute('data-key');
+                            deleteCategory(key);
+                        });
+                    }
+                });
+            }, { onlyOnce: true });
+        }
+
+        function editCategory(key) {
+            const categoryRef = ref(db, `categories/${key}`);
+            onValue(categoryRef, (snapshot) => {
+                const category = snapshot.val();
+                document.getElementById('categoryName').value = category.name;
+                document.getElementById('categoryDesc').value = category.description;
+                const saveBtn = document.getElementById('saveCategoryBtn');
+                saveBtn.textContent = "Alterar Categoria";
+                saveBtn.removeEventListener('click', saveCategoryDefault);
+                saveBtn.dataset.key = key;
+                saveBtn.addEventListener('click', editCategoryHandler);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, { onlyOnce: true });
+        }
+
+        function deleteCategory(key) {
+            if (confirm("Tem certeza que deseja excluir esta categoria?")) {
+                const categoryRef = ref(db, `categories/${key}`);
+                remove(categoryRef)
+                    .then(() => {
+                        document.getElementById('success').textContent = "Categoria excluída com sucesso!";
+                        loadCategoryList();
+                    })
+                    .catch(error => log(`Erro ao excluir categoria: ${error.message}`));
+            }
+        }
+
+        document.getElementById('searchBtn').addEventListener('click', () => {
+            showScreen('searchScreen');
+            loadCategories(document.getElementById('includeCategories'));
+            loadCategories(document.getElementById('excludeCategories'));
+            document.getElementById('searchAllPromptsCheckbox').checked = false;
+        });
+
+        document.getElementById('advancedSearchBtn').addEventListener('click', () => {
+            showScreen('advancedSearchScreen');
+            loadCategories(document.getElementById('advIncludeCategories'));
+            loadCategories(document.getElementById('advExcludeCategories'));
+            if (currentUserEmail === "psics.psix.141@gmail.com") {
+                document.getElementById('advSearchHiddenCheckbox').checked = false;
+            }
+        });
+
+        document.getElementById('authorizationBtn').addEventListener('click', () => {
+            showScreen('authorizationScreen');
+            loadUserList();
+        });
+
+        function loadUserList() {
+            const userList = document.getElementById('userList');
+            onValue(usersRef, (snapshot) => {
+                const users = snapshot.val();
+                userList.innerHTML = '';
+                if (!users) {
+                    userList.innerHTML = '<li>Nenhum usuário cadastrado.</li>';
+                    return;
+                }
+                const sortedUsers = Object.entries(users).sort((a, b) => a[1].email.localeCompare(b[1].email));
+                sortedUsers.forEach(([uid, user]) => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <div class="prompt-row">
+                            <span>${user.email}</span>
+                            <div class="checkbox-container">
+                                <input type="checkbox" id="perm_${uid}" ${user.canSearchAllPrompts ? 'checked' : ''}>
+                                <label for="perm_${uid}">Permissão para pesquisar todos os prompts</label>
+                                ${user.email !== "psics.psix.141@gmail.com" ? `<button class="delete-user-btn" data-uid="${uid}">Excluir</button>` : ''}
+                            </div>
+                        </div>
+                    `;
+                    userList.appendChild(li);
+                    li.querySelector(`#perm_${uid}`).addEventListener('change', (e) => {
+                        set(ref(db, `users/${uid}/canSearchAllPrompts`), e.target.checked)
+                            .then(() => log(`Permissão atualizada para ${user.email}`))
+                            .catch(error => log(`Erro ao atualizar permissão: ${error.message}`));
+                    });
+                    if (user.email !== "psics.psix.141@gmail.com") {
+                        li.querySelector('.delete-user-btn').addEventListener('click', (e) => {
+                            const uid = e.target.getAttribute('data-uid');
+                            deleteUser(uid);
+                        });
+                    }
+                });
+            }, { onlyOnce: true });
+        }
+
+        function deleteUser(uid) {
+            if (confirm("Tem certeza que deseja excluir este usuário? Isso também excluirá todos os seus prompts.")) {
+                const userRef = ref(db, `users/${uid}`);
+                const userPromptsRef = ref(db, 'prompts');
+                onValue(userPromptsRef, (snapshot) => {
+                    const prompts = snapshot.val();
+                    if (prompts) {
+                        const userPrompts = Object.entries(prompts).filter(([_, prompt]) => prompt.userEmail === currentUserEmail);
+                        userPrompts.forEach(([key, _]) => {
+                            remove(ref(db, `prompts/${key}`));
+                        });
+                    }
+                }, { onlyOnce: true });
+                remove(userRef)
+                    .then(() => {
+                        document.getElementById('success').textContent = "Usuário e seus prompts excluídos com sucesso!";
+                        loadUserList();
+                    })
+                    .catch(error => log(`Erro ao excluir usuário: ${error.message}`));
+            }
+        }
+
+        function performSearch(isAdvanced = false) {
+            const input = document.getElementById(isAdvanced ? 'advSearchInput' : 'searchInput').value.trim().toLowerCase();
+            const promptText = document.getElementById(isAdvanced ? 'advSearchPromptText' : 'searchPromptText').value.trim().toLowerCase();
+            const promptFunction = document.getElementById(isAdvanced ? 'advSearchPromptFunction' : 'searchPromptFunction').value.trim().toLowerCase();
+            const promptLocation = document.getElementById(isAdvanced ? 'advSearchPromptLocation' : 'searchPromptLocation').value.trim().toLowerCase();
+            const promptNote = document.getElementById(isAdvanced ? 'advSearchPromptNote' : 'searchPromptNote').value.trim().toLowerCase();
+            const promptAuthor = document.getElementById(isAdvanced ? 'advSearchPromptAuthor' : 'searchPromptAuthor').value.trim().toLowerCase();
+            const promptUserEmail = isAdvanced ? document.getElementById('advSearchPromptUserEmail').value.trim().toLowerCase() : '';
+            const includeSelect = document.getElementById(isAdvanced ? 'advIncludeCategories' : 'includeCategories');
+            const excludeSelect = document.getElementById(isAdvanced ? 'advExcludeCategories' : 'excludeCategories');
+            const includeCategories = Array.from(includeSelect.selectedOptions).map(opt => opt.textContent);
+            const excludeCategories = Array.from(excludeSelect.selectedOptions).map(opt => opt.textContent);
+            const includeHidden = isAdvanced && currentUserEmail === "psics.psix.141@gmail.com" && document.getElementById('advSearchHiddenCheckbox').checked;
+            const searchAllPrompts = !isAdvanced && canSearchAllPrompts && document.getElementById('searchAllPromptsCheckbox').checked;
+            const resultsList = document.getElementById(isAdvanced ? 'advSearchResults' : 'searchResults');
+
+            if (includeCategories.length > 0 && excludeCategories.length > 0 && includeCategories.some(cat => excludeCategories.includes(cat))) {
+                document.getElementById('error').textContent = "Conflito nas categorias! Marque apenas em uma coluna.";
+                return;
+            }
+
+            onValue(promptsRef, (snapshot) => {
+                const prompts = snapshot.val();
+                resultsList.innerHTML = '';
+                if (!prompts) {
+                    resultsList.innerHTML = '<li>Nenhum prompt encontrado.</li>';
+                    scrollToResults(isAdvanced);
+                    return;
+                }
+
+                const hasCriteria = input || promptText || promptFunction || promptLocation || promptNote || promptAuthor || (isAdvanced && promptUserEmail) || includeCategories.length > 0 || excludeCategories.length > 0;
+
+                const filteredPrompts = Object.entries(prompts)
+                    .filter(([_, prompt]) => {
+                        if (!isAdvanced && !searchAllPrompts && prompt.userEmail !== currentUserEmail) return false;
+                        if (!isAdvanced && prompt.hidden && prompt.userEmail === "psics.psix.141@gmail.com") return false;
+                        if (isAdvanced && currentUserEmail !== "psics.psix.141@gmail.com" && prompt.hidden) return false;
+
+                        if (isAdvanced && includeHidden && !hasCriteria) {
+                            return prompt.hidden && prompt.userEmail === "psics.psix.141@gmail.com";
+                        }
+
+                        if (!hasCriteria && !includeHidden) return false;
+
+                        const generalMatch = !input || (
+                            prompt.text.toLowerCase().includes(input) ||
+                            prompt.function.toLowerCase().includes(input) ||
+                            prompt.location.toLowerCase().includes(input) ||
+                            (prompt.note && prompt.note.toLowerCase().includes(input)) ||
+                            prompt.author.toLowerCase().includes(input) ||
+                            (prompt.categories && prompt.categories.some(cat => cat.toLowerCase().includes(input))) ||
+                            prompt.userEmail.toLowerCase().includes(input)
+                        );
+
+                        const specificMatch = (
+                            (!promptText || prompt.text.toLowerCase().includes(promptText)) &&
+                            (!promptFunction || prompt.function.toLowerCase().includes(promptFunction)) &&
+                            (!promptLocation || prompt.location.toLowerCase().includes(promptLocation)) &&
+                            (!promptNote || (prompt.note && prompt.note.toLowerCase().includes(promptNote))) &&
+                            (!promptAuthor || prompt.author.toLowerCase().includes(promptAuthor)) &&
+                            (!promptUserEmail || prompt.userEmail.toLowerCase().includes(promptUserEmail))
+                        );
+
+                        const includeMatch = includeCategories.length === 0 || (Array.isArray(prompt.categories) && prompt.categories.some(cat => includeCategories.includes(cat)));
+                        const excludeMatch = excludeCategories.length === 0 || !(Array.isArray(prompt.categories) && prompt.categories.some(cat => excludeCategories.includes(cat)));
+
+                        if (isAdvanced && includeHidden && hasCriteria) {
+                            return generalMatch && specificMatch && includeMatch && excludeMatch;
+                        }
+
+                        if (prompt.hidden && prompt.userEmail === "psics.psix.141@gmail.com" && !includeHidden) return false;
+
+                        return generalMatch && specificMatch && includeMatch && excludeMatch;
+                    })
+                    .sort((a, b) => b[1].timestamp - a[1].timestamp);
+
+                filteredPrompts.forEach(([key, prompt]) => {
+                    const categoriesText = Array.isArray(prompt.categories) ? prompt.categories.join(', ') : 'Sem categorias';
+                    const li = document.createElement('li');
+                    if (isAdvanced) {
+                        li.innerHTML = `
+                            <div class="prompt-row">
+                                <div class="adv-prompt-details">
+                                    <span>Texto: ${prompt.text}</span>
+                                    <span>Função: ${prompt.function}</span>
+                                    <span>Local: ${prompt.location}</span>
+                                    <span>Palavras-chave: ${prompt.note || ''}</span>
+                                    <span>Autor: ${prompt.author}</span>
+                                    <span>E-mail: ${prompt.userEmail}</span>
+                                    <span>Categorias: ${categoriesText}</span>
+                                </div>
+                                <button class="copy-btn" data-text="${prompt.text}">Copiar</button>
+                                <button class="edit-btn" data-key="${key}">Editar</button>
+                                ${currentUserEmail === "psics.psix.141@gmail.com" ? `<button class="delete-btn" data-key="${key}">Excluir</button>` : ''}
+                            </div>
+                        `;
+                    } else {
+                        li.innerHTML = `
+                            <div class="prompt-row">
+                                <span>${prompt.text} | Autor: ${prompt.author}</span>
+                                <button class="copy-btn" data-text="${prompt.text}">Copiar</button>
+                                ${currentUserEmail === "psics.psix.141@gmail.com" ? `
+                                    <button class="edit-btn" data-key="${key}">Editar</button>
+                                    <button class="delete-btn" data-key="${key}">Excluir</button>
+                                ` : ''}
+                            </div>
+                        `;
+                    }
+                    resultsList.appendChild(li);
+                    li.querySelector('.copy-btn').addEventListener('click', (e) => {
+                        navigator.clipboard.writeText(e.target.getAttribute('data-text'));
+                        document.getElementById('success').textContent = "Prompt copiado para a área de transferência!";
+                    });
+                    if (currentUserEmail === "psics.psix.141@gmail.com") {
+                        li.querySelector('.edit-btn').addEventListener('click', (e) => {
+                            const key = e.target.getAttribute('data-key');
+                            editPrompt(key);
+                        });
+                        li.querySelector('.delete-btn').addEventListener('click', (e) => {
+                            const key = e.target.getAttribute('data-key');
+                            deletePrompt(key, isAdvanced);
+                        });
+                    }
+                });
+
+                if (filteredPrompts.length === 0) {
+                    resultsList.innerHTML = '<li>Nenhum prompt encontrado.</li>';
+                } else {
+                    document.getElementById('success').textContent = "Resultados exibidos!";
+                }
+                scrollToResults(isAdvanced);
+            }, { onlyOnce: true });
+        }
+
+        function scrollToResults(isAdvanced) {
+            const resultsList = document.getElementById(isAdvanced ? 'advSearchResults' : 'searchResults');
+            resultsList.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function clearSearchFields(isAdvanced = false) {
+            log(`Limpando campos da ${isAdvanced ? 'Pesquisa Avançada' : 'Pesquisa'} para ${currentUserEmail}`);
+            const prefix = isAdvanced ? 'advSearch' : 'search';
+
+            // Função auxiliar para limpar campo se ele existir
+            const clearValue = (id) => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.value = '';
+                    log(`Campo ${id} limpo`);
+                } else {
+                    log(`Campo ${id} não encontrado`);
+                }
+            };
+
+            // Função auxiliar para limpar seleções de combo box
+            const clearSelect = (id) => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.selectedIndex = -1;
+                    // Forçar desmarcação de todas as opções
+                    for (let option of element.options) {
+                        option.selected = false;
+                    }
+                    log(`Combo box ${id} limpo`);
+                } else {
+                    log(`Combo box ${id} não encontrado`);
+                }
+            };
+
+            // Limpar campos de texto com IDs corretos
+            clearValue(`${prefix}Input`);           // Pesquisa: searchInput, Avançada: advSearchInput
+            clearValue(`${prefix}PromptText`);      // Pesquisa: searchPromptText, Avançada: advSearchPromptText
+            clearValue(`${prefix}PromptFunction`);  // Pesquisa: searchPromptFunction, Avançada: advSearchPromptFunction
+            clearValue(`${prefix}PromptLocation`);  // Pesquisa: searchPromptLocation, Avançada: advSearchPromptLocation
+            clearValue(`${prefix}PromptNote`);      // Pesquisa: searchPromptNote, Avançada: advSearchPromptNote
+            clearValue(`${prefix}PromptAuthor`);    // Pesquisa: searchPromptAuthor, Avançada: advSearchPromptAuthor
+            if (isAdvanced) clearValue('advSearchPromptUserEmail'); // Apenas para Pesquisa Avançada
+
+            // Limpar seleções dos combo boxes
+            clearSelect(isAdvanced ? 'advIncludeCategories' : 'includeCategories');
+            clearSelect(isAdvanced ? 'advExcludeCategories' : 'excludeCategories');
+
+            // Limpar checkbox da Pesquisa, se aplicável
+            if (!isAdvanced && canSearchAllPrompts && currentUserEmail !== "psics.psix.141@gmail.com") {
+                const checkbox = document.getElementById('searchAllPromptsCheckbox');
+                if (checkbox) {
+                    checkbox.checked = false;
+                    log("Checkbox searchAllPromptsCheckbox limpo");
+                }
+            }
+
+            // Limpar checkbox da Pesquisa Avançada, se aplicável
+            if (isAdvanced && currentUserEmail === "psics.psix.141@gmail.com") {
+                const hiddenCheckbox = document.getElementById('advSearchHiddenCheckbox');
+                if (hiddenCheckbox) {
+                    hiddenCheckbox.checked = false;
+                    log("Checkbox advSearchHiddenCheckbox limpo");
+                }
+            }
+
+            // Limpar resultados e saída de texto
+            const results = document.getElementById(isAdvanced ? 'advSearchResults' : 'searchResults');
+            const txtOutput = document.getElementById(isAdvanced ? 'txtOutputAdv' : 'txtOutput');
+            if (results) {
+                results.innerHTML = '';
+                log(`Resultados ${isAdvanced ? 'advSearchResults' : 'searchResults'} limpos`);
+            }
+            if (txtOutput) {
+                txtOutput.style.display = 'none';
+                log(`Saída de texto ${isAdvanced ? 'txtOutputAdv' : 'txtOutput'} ocultada`);
+            }
+
+            // Exibir mensagem de sucesso
+            document.getElementById('success').textContent = "Campos limpos com sucesso!";
+
+            // Forçar rolagem para o topo
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            // Forçar atualização do DOM
+            const screen = document.getElementById(isAdvanced ? 'advancedSearchScreen' : 'searchScreen');
+            screen.style.display = 'none';
+            setTimeout(() => {
+                screen.style.display = 'block';
+            }, 0);
+
+            log("Campos limpos com sucesso");
+        }
+
+        function editPrompt(key) {
+            showScreen('editPromptScreen');
+            const promptRef = ref(db, `prompts/${key}`);
+            onValue(promptRef, (snapshot) => {
+                const prompt = snapshot.val();
+                if (!prompt) {
+                    document.getElementById('error').textContent = "Prompt não encontrado!";
+                    return;
+                }
+                document.getElementById('editPromptText').value = prompt.text;
+                document.getElementById('editPromptFunction').value = prompt.function;
+                document.getElementById('editPromptLocation').value = prompt.location;
+                document.getElementById('editPromptNote').value = prompt.note || '';
+                document.getElementById('editPromptAuthor').value = prompt.author;
+                document.getElementById('editPromptUserEmail').value = prompt.userEmail;
+                loadCategories(document.getElementById('editCategorySelect'), prompt.categories || []);
+                if (currentUserEmail === "psics.psix.141@gmail.com") {
+                    document.getElementById('editHiddenCheckbox').checked = prompt.hidden || false;
+                }
+                editingPromptKey = key;
+            }, { onlyOnce: true });
+        }
+
+        function deletePrompt(key, isAdvanced) {
+            if (confirm("Tem certeza que deseja excluir este prompt?")) {
+                const promptRef = ref(db, `prompts/${key}`);
+                remove(promptRef)
+                    .then(() => {
+                        document.getElementById('success').textContent = "Prompt excluído com sucesso!";
+                        if (isAdvanced) {
+                            performSearch(true);
+                        } else {
+                            showRecentPrompts();
+                        }
+                    })
+                    .catch(error => log(`Erro ao excluir prompt: ${error.message}`));
+            }
+        }
+
+        document.getElementById('saveEditPromptBtn').addEventListener('click', () => {
+            const text = document.getElementById('editPromptText').value.trim();
+            const func = document.getElementById('editPromptFunction').value.trim();
+            const location = document.getElementById('editPromptLocation').value.trim();
+            const note = document.getElementById('editPromptNote').value.trim();
+            let author = document.getElementById('editPromptAuthor').value.trim();
+            const userEmail = document.getElementById('editPromptUserEmail').value.trim();
+            const categorySelect = document.getElementById('editCategorySelect');
+            const categories = Array.from(categorySelect.selectedOptions).map(option => option.textContent);
+            const hidden = currentUserEmail === "psics.psix.141@gmail.com" && document.getElementById('editHiddenCheckbox').checked;
+
+            if (!text || !func) {
+                document.getElementById('error').textContent = "Preencha os campos obrigatórios: Texto do Prompt e Função!";
+                return;
+            }
+
+            if (!author) {
+                author = currentUserEmail;
+            }
+
+            const updatedPrompt = {
+                text,
+                function: func,
+                location,
+                note,
+                author,
+                userEmail: userEmail || currentUserEmail,
+                categories: categories.length > 0 ? categories : [],
+                timestamp: Date.now(),
+                hidden: hidden || false
+            };
+
+            set(ref(db, `prompts/${editingPromptKey}`), updatedPrompt)
+                .then(() => {
+                    document.getElementById('success').textContent = "Prompt atualizado com sucesso!";
+                    editingPromptKey = null;
+                    showRecentPrompts();
+                })
+                .catch(error => log(`Erro ao atualizar prompt: ${error.message}`));
+        });
+
+        document.getElementById('doSearchBtn').addEventListener('click', () => performSearch(false));
+        document.getElementById('doSearchBtnTop').addEventListener('click', () => performSearch(false));
+        document.getElementById('doAdvSearchBtn').addEventListener('click', () => performSearch(true));
+        document.getElementById('doAdvSearchBtnTop').addEventListener('click', () => performSearch(true));
+        document.getElementById('searchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') performSearch(false);
+        });
+        document.getElementById('advSearchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') performSearch(true);
+        });
+
+        document.getElementById('clearSearchBtn').addEventListener('click', () => {
+            log("Botão Limpar Campos da Pesquisa clicado");
+            clearSearchFields(false);
+        });
+        document.getElementById('clearAdvSearchBtn').addEventListener('click', () => {
+            log("Botão Limpar Campos da Pesquisa Avançada clicado");
+            clearSearchFields(true);
+        });
+
+        function exportSearchToTxt(isAdvanced = false) {
+            const resultsList = document.getElementById(isAdvanced ? 'advSearchResults' : 'searchResults');
+            const txtOutput = document.getElementById(isAdvanced ? 'txtOutputAdv' : 'txtOutput');
+            let content = '';
+            resultsList.querySelectorAll('li').forEach(li => {
+                if (isAdvanced) {
+                    const details = li.querySelector('.adv-prompt-details');
+                    if (details) {
+                        const spans = details.querySelectorAll('span');
+                        spans.forEach(span => {
+                            content += `${span.textContent}\n`;
+                        });
+                        content += '\n';
+                    }
+                } else {
+                    const text = li.querySelector('span').textContent;
+                    content += `${text}\n\n`;
+                }
+            });
+            txtOutput.value = content || 'Nenhum resultado para exportar.';
+            txtOutput.style.display = 'block';
+        }
+
+        document.getElementById('txtSearchBtn').addEventListener('click', () => exportSearchToTxt(false));
+        document.getElementById('txtAdvSearchBtn').addEventListener('click', () => exportSearchToTxt(true));
+
+        document.getElementById('backBtn').addEventListener('click', showRecentPrompts);
+        document.getElementById('backBtnStore').addEventListener('click', showRecentPrompts);
+        document.getElementById('backBtnEdit').addEventListener('click', showRecentPrompts);
+        document.getElementById('backBtnCategory').addEventListener('click', showRecentPrompts);
+        document.getElementById('backBtnSearch').addEventListener('click', showRecentPrompts);
+        document.getElementById('backBtnAdvSearch').addEventListener('click', showRecentPrompts);
+        document.getElementById('backBtnAuthorization').addEventListener('click', showRecentPrompts);
+
+        showRecentPrompts();
+    </script>
+</body>
+</html>
